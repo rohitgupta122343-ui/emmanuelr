@@ -27,7 +27,7 @@ const Hero = () => {
     >
       {/* Background */}
       <div className="absolute inset-0">
-        <Lightfall
+       <Lightfall
   paused={paused}
   colors={["#A6C8FF", "#5227FF", "#FF9FFC"]}
   backgroundColor="#0A29FF"
@@ -36,14 +36,14 @@ const Hero = () => {
   streakWidth={0.7}
   streakLength={0.9}
   glow={0.8}
-  density={0.25}     
+  density={0.3}
   twinkle={0.3}
   zoom={1.8}
   backgroundGlow={0.25}
   opacity={1}
-
+  mouseInteraction={false}
 />
-      </div>
+  </div>
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/30" />
