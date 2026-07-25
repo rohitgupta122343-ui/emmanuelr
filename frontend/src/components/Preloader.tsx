@@ -76,27 +76,27 @@ const Preloader = ({ onComplete }: PreloaderProps) => {
       </div>
 
       {/* Center content */}
-      <div className="relative z-10 flex flex-col items-center gap-8">
-        {/* Logo / Name */}
-        <div className="font-display text-3xl tracking-[0.3em] text-foreground/80">
+      <div className="relative z-10 flex flex-col items-center gap-6">
+        {/* Logo / Name - Reduced from text-3xl to text-sm / text-base */}
+        <div className="font-display text-sm tracking-[0.4em] text-foreground/80 md:text-base">
           <span className="text-[#002E97]">E</span>
           <span>MMANUEL</span>
-          <span className="mx-4 text-muted-foreground/30">•</span>
+          <span className="mx-3 text-muted-foreground/30">•</span>
           <span className="text-[#002E97]">R</span>
           <span>EBAIRO</span>
         </div>
 
-        {/* Progress bar */}
-        <div className="relative h-[1px] w-48 bg-muted/20">
+        {/* Progress bar - Slimmer width & height */}
+        <div className="relative h-[1px] w-36 bg-muted/20">
           <div
-            className="absolute left-0 top-0 h-full bg-[#002E97] transition-all duration-300 ease-out shadow-[0_0_12px_rgba(0,46,151,0.8)]"
+            className="absolute left-0 top-0 h-full bg-[#002E97] transition-all duration-300 ease-out shadow-[0_0_10px_rgba(0,46,151,0.8)]"
             style={{ width: `${Math.min(progress, 100)}%` }}
           />
         </div>
 
-        {/* Progress text */}
-        <div className="font-body text-xs tracking-[0.5em] text-muted-foreground">
-          LOADING
+        {/* Progress text & percentage - Extra small (text-[10px]) */}
+        <div className="font-body text-[10px] tracking-[0.5em] text-muted-foreground/60 uppercase">
+          LOADING <span className="ml-1 text-foreground/80">{Math.min(Math.round(progress), 100)}%</span>
         </div>
       </div>
 
@@ -104,8 +104,8 @@ const Preloader = ({ onComplete }: PreloaderProps) => {
       <div 
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
         style={{
-          width: '600px',
-          height: '600px',
+          width: '500px',
+          height: '500px',
           background: 'radial-gradient(circle, rgba(0, 46, 151, 0.15) 0%, transparent 60%)',
           filter: 'blur(60px)',
         }}
