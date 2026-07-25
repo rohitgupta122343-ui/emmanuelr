@@ -4,7 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Chronicle-inspired Design System - Pure Black with Emerald Accents */
+/* Chronicle-inspired Design System - Pure Black with Royal Blue Accents */
 
 @layer base {
   :root {
@@ -18,8 +18,8 @@
     --popover: 0 0% 2%;
     --popover-foreground: 0 0% 95%;
 
-    /* Emerald accent - used sparingly */
-    --primary: 160 84% 39%;
+    /* #002E97 in HSL: 222 100% 30% */
+    --primary: 222 100% 30%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 8%;
@@ -28,7 +28,7 @@
     --muted: 0 0% 12%;
     --muted-foreground: 0 0% 55%;
 
-    --accent: 160 84% 39%;
+    --accent: 222 100% 30%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -36,14 +36,14 @@
 
     --border: 0 0% 12%;
     --input: 0 0% 12%;
-    --ring: 160 84% 39%;
+    --ring: 222 100% 30%;
 
     --radius: 0.5rem;
 
-    /* Custom emerald shades */
-    --emerald-glow: 160 84% 45%;
-    --emerald-subtle: 160 60% 25%;
-    --emerald-dark: 160 70% 15%;
+    /* Custom Blue Shades based on #002E97 */
+    --blue-glow: 222 100% 45%;
+    --blue-subtle: 222 70% 20%;
+    --blue-dark: 222 80% 12%;
 
     /* Typography */
     --font-display: 'Italiana', serif;
@@ -57,19 +57,19 @@
     --card-foreground: 0 0% 95%;
     --popover: 0 0% 2%;
     --popover-foreground: 0 0% 95%;
-    --primary: 160 84% 39%;
+    --primary: 222 100% 30%;
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 8%;
     --secondary-foreground: 0 0% 90%;
     --muted: 0 0% 12%;
     --muted-foreground: 0 0% 55%;
-    --accent: 160 84% 39%;
+    --accent: 222 100% 30%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 12%;
     --input: 0 0% 12%;
-    --ring: 160 84% 39%;
+    --ring: 222 100% 30%;
   }
 }
 
@@ -94,22 +94,22 @@
 }
 
 @layer components {
-  /* Emerald text glow for name characters */
-  .char-emerald {
+  /* Blue text glow for accent text */
+  .char-blue, .char-emerald {
     color: hsl(var(--primary));
     text-shadow: 
-      0 0 10px hsl(var(--emerald-glow) / 0.5),
-      0 0 30px hsl(var(--emerald-glow) / 0.3),
-      0 0 60px hsl(var(--emerald-glow) / 0.2);
+      0 0 10px hsl(var(--blue-glow) / 0.5),
+      0 0 30px hsl(var(--blue-glow) / 0.3),
+      0 0 60px hsl(var(--blue-glow) / 0.2);
   }
 
-  /* Subtle emerald hover */
-  .hover-emerald {
+  /* Subtle blue hover */
+  .hover-blue, .hover-emerald {
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .hover-emerald:hover {
+  .hover-blue:hover, .hover-emerald:hover {
     color: hsl(var(--primary));
-    text-shadow: 0 0 20px hsl(var(--emerald-glow) / 0.4);
+    text-shadow: 0 0 20px hsl(var(--blue-glow) / 0.4);
   }
 
   /* Glass morphism for 3D panels */
@@ -124,18 +124,19 @@
     animation: floatText 6s ease-in-out infinite;
   }
 
-  /* Preloader smoke effect */
+  /* Preloader smoke effect - FIXED TO BLUE (#002E97) */
   .smoke-particle {
     position: absolute;
     border-radius: 50%;
     background: radial-gradient(
       circle,
-      hsl(var(--primary) / 0.4) 0%,
-      hsl(var(--primary) / 0.1) 40%,
+      rgba(0, 46, 151, 0.35) 0%,
+      rgba(0, 46, 151, 0.1) 40%,
       transparent 70%
     );
     filter: blur(20px);
     animation: smokeFloat 4s ease-in-out infinite;
+    pointer-events: none;
   }
 
   /* Minimal button style */
