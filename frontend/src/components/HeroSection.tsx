@@ -36,7 +36,7 @@ const Hero = () => {
   streakWidth={0.7}
   streakLength={0.9}
   glow={0.8}
-  density={0.25}       {/* Lower density for mobile GPU comfort */}
+  density={0.25}     
   twinkle={0.3}
   zoom={1.8}
   backgroundGlow={0.25}
