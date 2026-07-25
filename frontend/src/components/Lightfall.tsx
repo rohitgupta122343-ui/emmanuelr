@@ -1,9 +1,34 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Renderer, Program, Mesh, Triangle } from 'ogl';
+
+export interface LightfallProps {
+  className?: string;
+  dpr?: number;
+  paused?: boolean;
+  colors?: string[];
+  backgroundColor?: string;
+  speed?: number;
+  streakCount?: number;
+  streakWidth?: number;
+  streakLength?: number;
+  glow?: number;
+  density?: number;
+  twinkle?: number;
+  zoom?: number;
+  backgroundGlow?: number;
+  opacity?: number;
+  mouseInteraction?: boolean;
+  mouseStrength?: number;
+  mouseRadius?: number;
+  mouseDampening?: number;
+  mixBlendMode?: string;
+}
+
+type RGB = [number, number, number];
 
 const MAX_COLORS = 8;
 
-const hexToRGB = hex => {
+const hexToRGB = (hex: string): RGB => {
   const c = hex.replace('#', '').padEnd(6, '0');
   const r = parseInt(c.slice(0, 2), 16) / 255;
   const g = parseInt(c.slice(2, 4), 16) / 255;
@@ -11,12 +36,12 @@ const hexToRGB = hex => {
   return [r, g, b];
 };
 
-const prepColors = input => {
+const prepColors = (input?: string[]) => {
   const base = (input && input.length ? input : ['#A6C8FF', '#5227FF', '#FF9FFC']).slice(0, MAX_COLORS);
   const count = base.length;
-  const arr = [];
+  const arr: RGB[] = [];
   for (let i = 0; i < MAX_COLORS; i++) arr.push(hexToRGB(base[Math.min(i, base.length - 1)]));
-  const avg = [0, 0, 0];
+  const avg: RGB = [0, 0, 0];
   for (let i = 0; i < count; i++) {
     avg[0] += arr[i][0];
     avg[1] += arr[i][1];
@@ -35,15 +60,11 @@ varying vec2 vUv;
 void main() {
   vUv = uv;
   gl_Position = vec4(position, 0.0, 1.0);
-} 
+}
 `;
 
 const fragment = `
-#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
-#else
-precision mediump float;
-#endif
 
 uniform vec3  iResolution;
 uniform vec2  iMouse;
@@ -57,7 +78,7 @@ uniform vec3  uColor4;
 uniform vec3  uColor5;
 uniform vec3  uColor6;
 uniform vec3  uColor7;
-uniform float uColorCount;
+uniform int   uColorCount;
 
 uniform vec3  uBgColor;
 uniform vec3  uMouseColor;
@@ -78,19 +99,17 @@ uniform float uMouseRadius;
 varying vec2 vUv;
 
 vec3 palette(float h) {
-    int count = int(uColorCount);
-    if (count < 1) count = 1;
-
-    int idx = int(floor(clamp(h, 0.0, 0.999999) * float(count)));
-
-    if (idx <= 0) return uColor0;
-    if (idx == 1) return uColor1;
-    if (idx == 2) return uColor2;
-    if (idx == 3) return uColor3;
-    if (idx == 4) return uColor4;
-    if (idx == 5) return uColor5;
-    if (idx == 6) return uColor6;
-    return uColor7;
+  int count = uColorCount;
+  if (count < 1) count = 1;
+  int idx = int(floor(clamp(h, 0.0, 0.999999) * float(count)));
+  if (idx <= 0) return uColor0;
+  if (idx == 1) return uColor1;
+  if (idx == 2) return uColor2;
+  if (idx == 3) return uColor3;
+  if (idx == 4) return uColor4;
+  if (idx == 5) return uColor5;
+  if (idx == 6) return uColor6;
+  return uColor7;
 }
 
 vec3 tanhv(vec3 x) {
@@ -103,7 +122,7 @@ vec2 sceneC(vec2 frag, vec2 r) {
   float z = 0.0;
   float d = 1e3;
   vec4 O = vec4(0.0);
-for (int k = 0; k < 24; k++)  {
+  for (int k = 0; k < 39; k++) {
     if (d <= 1e-4) break;
     O = z * normalize(vec4(P, uZoom, 0.0)) - vec4(0.0, 4.0, 1.0, 0.0) / 4.5;
     d = 1.0 - sqrt(length(O * O));
@@ -144,7 +163,7 @@ void mainImage(out vec4 o, vec2 C) {
   vec2 rr = vec2(max(length(fw), 1e-5));
   float tail = 19.0 / max(uStreakLength, 0.05);
 
-for (int m = 0; m < 8; m++) {
+  for (int m = 0; m < 16; m++) {
     if (m >= uStreakCount) break;
     float jf = float(m) + 1.0;
     float ic = fract(sin(dot(vec2(jf, floor(C.x / Y.x + 0.5)), vec2(7.0, 11.0)) * 73.0));
@@ -171,7 +190,7 @@ void main() {
 }
 `;
 
-const Lightfall = ({
+const Lightfall: React.FC<LightfallProps> = ({
   className,
   dpr,
   paused = false,
@@ -193,28 +212,27 @@ const Lightfall = ({
   mouseDampening = 0.15,
   mixBlendMode
 }) => {
-  const containerRef = useRef(null);
-  const rafRef = useRef(null);
-  const programRef = useRef(null);
-  const meshRef = useRef(null);
-  const geometryRef = useRef(null);
-  const rendererRef = useRef(null);
-  const mouseTargetRef = useRef([0, 0]);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const programRef = useRef<Program | null>(null);
+  const meshRef = useRef<Mesh | null>(null);
+  const geometryRef = useRef<Triangle | null>(null);
+  const rendererRef = useRef<Renderer | null>(null);
+  const mouseTargetRef = useRef<[number, number]>([0, 0]);
   const lastTimeRef = useRef(0);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-  const effectiveDpr = 1;
     const renderer = new Renderer({
-      dpr: effectiveDpr,
+      dpr: dpr ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1),
       alpha: true,
-      antialias: false
+      antialias: true
     });
     rendererRef.current = renderer;
     const gl = renderer.gl;
-    const canvas = gl.canvas;
+    const canvas = gl.canvas as HTMLCanvasElement;
 
     canvas.style.width = '100%';
     canvas.style.height = '100%';
@@ -235,7 +253,7 @@ const Lightfall = ({
       uColor5: { value: arr[5] },
       uColor6: { value: arr[6] },
       uColor7: { value: arr[7] },
-     uColorCount: { value: Number(count) },
+      uColorCount: { value: count },
       uBgColor: { value: hexToRGB(backgroundColor) },
       uMouseColor: { value: avg },
       uSpeed: { value: speed },
@@ -253,18 +271,7 @@ const Lightfall = ({
       uMouseRadius: { value: mouseRadius }
     };
 
-    let program;
-
-try {
-  program = new Program(gl, {
-    vertex,
-    fragment,
-    uniforms,
-  });
-} catch (err) {
-  console.error("Shader compile failed", err);
-  return;
-}
+    const program = new Program(gl, { vertex, fragment, uniforms });
     programRef.current = program;
 
     const geometry = new Triangle(gl);
@@ -282,7 +289,7 @@ try {
     const ro = new ResizeObserver(resize);
     ro.observe(container);
 
-    const onPointerMove = e => {
+    const onPointerMove = (e: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
       const scale = renderer.dpr || 1;
       const x = (e.clientX - rect.left) * scale;
@@ -296,7 +303,7 @@ try {
       canvas.addEventListener('pointermove', onPointerMove);
     }
 
-    const loop = t => {
+    const loop = (t: number) => {
       rafRef.current = requestAnimationFrame(loop);
       uniforms.iTime.value = t * 0.001;
       if (mouseDampening > 0) {
@@ -307,7 +314,7 @@ try {
         let factor = 1 - Math.exp(-dt / tau);
         if (factor > 1) factor = 1;
         const target = mouseTargetRef.current;
-        const cur = uniforms.iMouse.value;
+        const cur = uniforms.iMouse.value as number[];
         cur[0] += (target[0] - cur[0]) * factor;
         cur[1] += (target[1] - cur[1]) * factor;
       } else {
@@ -330,9 +337,10 @@ try {
       if (canvas.parentElement === container) {
         container.removeChild(canvas);
       }
-      const callIfFn = (obj, key) => {
-        if (obj && typeof obj[key] === 'function') {
-          obj[key].call(obj);
+      const callIfFn = (obj: unknown, key: string) => {
+        const fn = obj && (obj as Record<string, unknown>)[key];
+        if (typeof fn === 'function') {
+          (fn as () => void).call(obj);
         }
       };
       callIfFn(programRef.current, 'remove');
@@ -370,7 +378,7 @@ try {
       ref={containerRef}
       className={`w-full h-full overflow-hidden relative ${className ?? ''}`}
       style={{
-        ...(mixBlendMode && { mixBlendMode })
+        ...(mixBlendMode && { mixBlendMode: mixBlendMode as React.CSSProperties['mixBlendMode'] })
       }}
     />
   );
