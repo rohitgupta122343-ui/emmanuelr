@@ -63,8 +63,13 @@ void main() {
 }
 `;
 
+// Optimized Fragment Shader for Low-End Mobile GPUs
 const fragment = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
+#else
+precision mediump float;
+#endif
 
 uniform vec3  iResolution;
 uniform vec2  iMouse;
@@ -122,7 +127,9 @@ vec2 sceneC(vec2 frag, vec2 r) {
   float z = 0.0;
   float d = 1e3;
   vec4 O = vec4(0.0);
-  for (int k = 0; k < 39; k++) {
+  
+  // Lower loop count (18 steps) for mobile compatibility
+  for (int k = 0; k < 18; k++) {
     if (d <= 1e-4) break;
     O = z * normalize(vec4(P, uZoom, 0.0)) - vec4(0.0, 4.0, 1.0, 0.0) / 4.5;
     d = 1.0 - sqrt(length(O * O));
@@ -163,7 +170,7 @@ void mainImage(out vec4 o, vec2 C) {
   vec2 rr = vec2(max(length(fw), 1e-5));
   float tail = 19.0 / max(uStreakLength, 0.05);
 
-  for (int m = 0; m < 16; m++) {
+  for (int m = 0; m < 12; m++) {
     if (m >= uStreakCount) break;
     float jf = float(m) + 1.0;
     float ic = fract(sin(dot(vec2(jf, floor(C.x / Y.x + 0.5)), vec2(7.0, 11.0)) * 73.0));
@@ -225,10 +232,17 @@ const Lightfall: React.FC<LightfallProps> = ({
     const container = containerRef.current;
     if (!container) return;
 
+    // Detect mobile device
+    const isMobile = typeof window !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // Caps pixel ratio to 1.0 or lower on mobile devices to prevent GPU slowdown
+    const targetDpr = dpr ?? (isMobile ? 0.85 : Math.min(window.devicePixelRatio || 1, 2));
+
     const renderer = new Renderer({
-      dpr: dpr ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1),
+      dpr: targetDpr,
       alpha: true,
-      antialias: true
+      antialias: false, // Turned off antialias for performance boost on low-end screens
+      powerPreference: 'high-performance'
     });
     rendererRef.current = renderer;
     const gl = renderer.gl;
@@ -257,7 +271,7 @@ const Lightfall: React.FC<LightfallProps> = ({
       uBgColor: { value: hexToRGB(backgroundColor) },
       uMouseColor: { value: avg },
       uSpeed: { value: speed },
-      uStreakCount: { value: Math.max(1, Math.min(16, Math.round(streakCount))) },
+      uStreakCount: { value: Math.max(1, Math.min(12, Math.round(streakCount))) },
       uStreakWidth: { value: streakWidth },
       uStreakLength: { value: streakLength },
       uGlow: { value: glow },
@@ -299,14 +313,15 @@ const Lightfall: React.FC<LightfallProps> = ({
         uniforms.iMouse.value = [x, y];
       }
     };
-    if (mouseInteraction) {
+    if (mouseInteraction && !isMobile) {
       canvas.addEventListener('pointermove', onPointerMove);
     }
 
     const loop = (t: number) => {
       rafRef.current = requestAnimationFrame(loop);
       uniforms.iTime.value = t * 0.001;
-      if (mouseDampening > 0) {
+      
+      if (mouseDampening > 0 && mouseInteraction && !isMobile) {
         if (!lastTimeRef.current) lastTimeRef.current = t;
         const dt = (t - lastTimeRef.current) / 1000;
         lastTimeRef.current = t;
@@ -320,6 +335,7 @@ const Lightfall: React.FC<LightfallProps> = ({
       } else {
         lastTimeRef.current = t;
       }
+      
       if (!paused && programRef.current && meshRef.current) {
         try {
           renderer.render({ scene: meshRef.current });

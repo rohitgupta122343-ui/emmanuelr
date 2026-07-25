@@ -28,21 +28,21 @@ const Hero = () => {
       {/* Background */}
       <div className="absolute inset-0">
         <Lightfall
-          paused={paused}
-          colors={["#A6C8FF", "#5227FF", "#FF9FFC"]}
-          backgroundColor="#0A29FF"
-          speed={0.25}
-          streakCount={2}
-          streakWidth={0.7}
-          streakLength={0.9}
-          glow={0.8}
-          density={0.3}
-          twinkle={0.3}
-          zoom={1.8}
-          backgroundGlow={0.25}
-          opacity={1}
-          mouseInteraction={false}
-        />
+  paused={paused}
+  colors={["#A6C8FF", "#5227FF", "#FF9FFC"]}
+  backgroundColor="#0A29FF"
+  speed={0.25}
+  streakCount={2}
+  streakWidth={0.7}
+  streakLength={0.9}
+  glow={0.8}
+  density={0.25}       {/* Lower density for mobile GPU comfort */}
+  twinkle={0.3}
+  zoom={1.8}
+  backgroundGlow={0.25}
+  opacity={1}
+  mouseInteraction={false}
+/>
       </div>
 
       {/* Overlay */}
