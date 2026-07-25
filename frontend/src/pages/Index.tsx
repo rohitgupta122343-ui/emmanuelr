@@ -89,7 +89,7 @@ const Index = () => {
             }}
             className="font-display text-sm tracking-[0.3em] text-foreground/60 transition-colors duration-300 hover:text-foreground"
           >
-            <span className="char-emerald">R</span>G
+            <span className="char-emerald">E</span>R
           </a>
         </nav>
       )}
