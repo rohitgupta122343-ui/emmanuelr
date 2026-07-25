@@ -41,7 +41,7 @@ const Hero = () => {
   zoom={1.8}
   backgroundGlow={0.25}
   opacity={1}
-  mouseInteraction={false}
+
 />
       </div>
 
