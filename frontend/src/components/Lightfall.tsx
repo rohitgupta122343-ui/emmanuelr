@@ -63,12 +63,15 @@ void main() {
 }
 `;
 
-// Mobile-friendly Shader Precision
+// Optimized Mobile-safe Fragment Shader
 const fragment = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
 precision mediump float;
+#endif
 
 uniform vec3  iResolution;
-uniform vec2  iMouse;
 uniform float iTime;
 
 uniform vec3  uColor0;
@@ -82,7 +85,6 @@ uniform vec3  uColor7;
 uniform int   uColorCount;
 
 uniform vec3  uBgColor;
-uniform vec3  uMouseColor;
 uniform float uSpeed;
 uniform int   uStreakCount;
 uniform float uStreakWidth;
@@ -93,40 +95,33 @@ uniform float uTwinkle;
 uniform float uZoom;
 uniform float uBgGlow;
 uniform float uOpacity;
-uniform float uMouseEnabled;
-uniform float uMouseStrength;
-uniform float uMouseRadius;
 
 varying vec2 vUv;
 
 vec3 palette(float h) {
-  int count = uColorCount;
-  if (count < 1) count = 1;
-  int idx = int(floor(clamp(h, 0.0, 0.999999) * float(count)));
-  if (idx <= 0) return uColor0;
-  if (idx == 1) return uColor1;
-  if (idx == 2) return uColor2;
-  if (idx == 3) return uColor3;
-  if (idx == 4) return uColor4;
-  if (idx == 5) return uColor5;
-  if (idx == 6) return uColor6;
+  float count = float(uColorCount);
+  if (count < 1.0) count = 1.0;
+  float idx = floor(clamp(h, 0.0, 0.99) * count);
+  
+  if (idx < 0.5) return uColor0;
+  if (idx < 1.5) return uColor1;
+  if (idx < 2.5) return uColor2;
+  if (idx < 3.5) return uColor3;
+  if (idx < 4.5) return uColor4;
+  if (idx < 5.5) return uColor5;
+  if (idx < 6.5) return uColor6;
   return uColor7;
-}
-
-vec3 tanhv(vec3 x) {
-  vec3 e = exp(-2.0 * x);
-  return (1.0 - e) / (1.0 + e);
 }
 
 vec2 sceneC(vec2 frag, vec2 r) {
   vec2 P = (frag + frag - r) / r.x;
   float z = 0.0;
-  float d = 1e3;
+  float d = 1000.0;
   vec4 O = vec4(0.0);
 
-  // Exact curve loop, optimized iteration steps for low mobile GPUs
-  for (int k = 0; k < 22; k++) {
-    if (d <= 1e-4) break;
+  // Reduced iteration count from 22 -> 8 to fix Mobile Lag
+  for (int k = 0; k < 8; k++) {
+    if (d <= 0.001) break;
     O = z * normalize(vec4(P, uZoom, 0.0)) - vec4(0.0, 4.0, 1.0, 0.0) / 4.5;
     d = 1.0 - sqrt(length(O * O));
     z += d;
@@ -139,7 +134,7 @@ void mainImage(out vec4 o, vec2 C) {
   vec2 uv0 = (C + C - r) / r.x;
   float T = 0.1 * iTime * uSpeed + 9.0;
   float angRings = max(1.0, floor(6.28318530718 * max(uDensity, 0.05) + 0.5));
-  vec2 Y = vec2(5e-3, 6.28318530718 / angRings);
+  vec2 Y = vec2(0.005, 6.28318530718 / angRings);
 
   vec2 c0 = sceneC(C, r);
   vec2 cdx = sceneC(C + vec2(1.0, 0.0), r);
@@ -152,21 +147,14 @@ void mainImage(out vec4 o, vec2 C) {
   C = c0;
 
   vec2 P = vec2(2.0, 1.0) * uv0 - (r / r.x) * vec2(0.0, 1.0);
-  vec4 O = vec4(uBgColor * 90.0 * uBgGlow / (1e3 * dot(P, P) + 6.0), 0.0);
+  vec3 O = uBgColor * 90.0 * uBgGlow / (1000.0 * dot(P, P) + 6.0);
 
-  float mGlow = 0.0;
-  if (uMouseEnabled > 0.5) {
-    vec2 mN = (iMouse + iMouse - r) / r.x;
-    float md = length(uv0 - mN);
-    mGlow = exp(-md * md / max(uMouseRadius * uMouseRadius, 1e-4)) * uMouseStrength;
-    O.rgb += uMouseColor * mGlow * 0.25;
-  }
-
-  float zr = 5e-4 * uStreakWidth;
-  vec2 rr = vec2(max(length(fw), 1e-5));
+  float zr = 0.0005 * uStreakWidth;
+  vec2 rr = vec2(max(length(fw), 0.00001));
   float tail = 19.0 / max(uStreakLength, 0.05);
 
-  for (int m = 0; m < 16; m++) {
+  // Reduced loop steps for high GPU performance
+  for (int m = 0; m < 8; m++) {
     if (m >= uStreakCount) break;
     float jf = float(m) + 1.0;
     float ic = fract(sin(dot(vec2(jf, floor(C.x / Y.x + 0.5)), vec2(7.0, 11.0)) * 73.0));
@@ -175,14 +163,16 @@ void mainImage(out vec4 o, vec2 C) {
     float h = fract(8663.0 * ic);
     vec3 col = palette(h);
     float weight = mix(1.5, 1.0 + sin(T + 7.0 * h + 4.0), uTwinkle);
-    weight *= (1.0 + mGlow * 2.0);
     vec2 inner = vec2(length(max(Pp, vec2(-1.0, 0.0))), length(Pp) - zr) - zr;
     vec2 sm = vec2(1.0) - smoothstep(-rr, rr, inner);
-    O.rgb += dot(sm, vec2(exp(tail * Pp.y), 3.0)) * col * weight;
+    O += dot(sm, vec2(exp(tail * Pp.y), 3.0)) * col * weight;
     C.x += Y.x / 8.0;
   }
 
-  vec3 colr = sqrt(tanhv(max(O.rgb * uGlow - vec3(0.04, 0.08, 0.02), 0.0)));
+  // Safe color tone mapping (Replaced tanhv to prevent Yellowish mobile bug)
+  vec3 colr = clamp(O * uGlow, 0.0, 1.0);
+  colr = pow(colr, vec3(0.8)); // Subtle gamma correction
+  
   o = vec4(colr, uOpacity);
 }
 
@@ -199,40 +189,29 @@ const Lightfall: React.FC<LightfallProps> = ({
   paused = false,
   colors = ['#A6C8FF', '#5227FF', '#FF9FFC'],
   backgroundColor = '#0A29FF',
-  speed = 0.5,
+  speed = 0.25,
   streakCount = 2,
-  streakWidth = 1,
-  streakLength = 1,
-  glow = 1,
-  density = 0.6,
-  twinkle = 1,
-  zoom = 3,
-  backgroundGlow = 0.5,
+  streakWidth = 0.7,
+  streakLength = 0.9,
+  glow = 0.8,
+  density = 0.3,
+  twinkle = 0.3,
+  zoom = 1.8,
+  backgroundGlow = 0.25,
   opacity = 1,
-  mouseInteraction = true,
-  mouseStrength = 0.5,
-  mouseRadius = 1,
-  mouseDampening = 0.15,
   mixBlendMode
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
-  const programRef = useRef<Program | null>(null);
-  const meshRef = useRef<Mesh | null>(null);
-  const geometryRef = useRef<Triangle | null>(null);
-  const rendererRef = useRef<Renderer | null>(null);
-  const mouseTargetRef = useRef<[number, number]>([0, 0]);
-  const lastTimeRef = useRef(0);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // Mobile / Low-end device detection
     const isMobile = typeof window !== 'undefined' && (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768);
 
-    // AUTO-DPR: Downscale WebGL canvas resolution on mobile (0.6 - 0.75) for 60FPS speed
-    const renderDpr = dpr ?? (isMobile ? 0.65 : Math.min(window.devicePixelRatio || 1, 1.5));
+    // Dynamic resolution scaling for mobile devices
+    const renderDpr = dpr ?? (isMobile ? 0.5 : Math.min(window.devicePixelRatio || 1, 1.5));
 
     let renderer: Renderer;
     try {
@@ -240,14 +219,13 @@ const Lightfall: React.FC<LightfallProps> = ({
         dpr: renderDpr,
         alpha: true,
         antialias: false,
-        powerPreference: 'high-performance'
+        webgl: 1
       });
     } catch (e) {
-      console.error("WebGL initialization error:", e);
+      console.error(e);
       return;
     }
 
-    rendererRef.current = renderer;
     const gl = renderer.gl;
     const canvas = gl.canvas as HTMLCanvasElement;
 
@@ -256,11 +234,10 @@ const Lightfall: React.FC<LightfallProps> = ({
     canvas.style.display = 'block';
     container.appendChild(canvas);
 
-    const { arr, count, avg } = prepColors(colors);
+    const { arr, count } = prepColors(colors);
 
     const uniforms = {
       iResolution: { value: [gl.drawingBufferWidth, gl.drawingBufferHeight, 1] },
-      iMouse: { value: [0, 0] },
       iTime: { value: 0 },
       uColor0: { value: arr[0] },
       uColor1: { value: arr[1] },
@@ -272,9 +249,8 @@ const Lightfall: React.FC<LightfallProps> = ({
       uColor7: { value: arr[7] },
       uColorCount: { value: count },
       uBgColor: { value: hexToRGB(backgroundColor) },
-      uMouseColor: { value: avg },
       uSpeed: { value: speed },
-      uStreakCount: { value: Math.max(1, Math.min(16, Math.round(streakCount))) },
+      uStreakCount: { value: Math.min(8, Math.round(streakCount)) },
       uStreakWidth: { value: streakWidth },
       uStreakLength: { value: streakLength },
       uGlow: { value: glow },
@@ -282,25 +258,19 @@ const Lightfall: React.FC<LightfallProps> = ({
       uTwinkle: { value: twinkle },
       uZoom: { value: zoom },
       uBgGlow: { value: backgroundGlow },
-      uOpacity: { value: opacity },
-      uMouseEnabled: { value: mouseInteraction ? 1 : 0 },
-      uMouseStrength: { value: mouseStrength },
-      uMouseRadius: { value: mouseRadius }
+      uOpacity: { value: opacity }
     };
 
     let program: Program;
     try {
       program = new Program(gl, { vertex, fragment, uniforms });
-      programRef.current = program;
     } catch (e) {
-      console.error("Shader Compile Error:", e);
+      console.error(e);
       return;
     }
 
     const geometry = new Triangle(gl);
-    geometryRef.current = geometry;
     const mesh = new Mesh(gl, { geometry, program });
-    meshRef.current = mesh;
 
     const resize = () => {
       const rect = container.getBoundingClientRect();
@@ -312,53 +282,13 @@ const Lightfall: React.FC<LightfallProps> = ({
     const ro = new ResizeObserver(resize);
     ro.observe(container);
 
-    const onPointerMove = (e: PointerEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const scale = renderer.dpr || 1;
-      const x = (e.clientX - rect.left) * scale;
-      const y = (rect.height - (e.clientY - rect.top)) * scale;
-      mouseTargetRef.current = [x, y];
-      if (mouseDampening <= 0) {
-        uniforms.iMouse.value = [x, y];
-      }
-    };
-
-    if (mouseInteraction && !isMobile) {
-      canvas.addEventListener('pointermove', onPointerMove);
-    }
-
-    // Frame Cap Throttle for low-end mobile chips
-    let lastRenderTime = 0;
-    const targetFps = isMobile ? 30 : 60; // 30 FPS cap for ultra smooth mobile rendering
-    const interval = 1000 / targetFps;
-
     const loop = (t: number) => {
       rafRef.current = requestAnimationFrame(loop);
-
-      const delta = t - lastRenderTime;
-      if (delta < interval) return;
-      lastRenderTime = t - (delta % interval);
-
       uniforms.iTime.value = t * 0.001;
 
-      if (mouseDampening > 0 && mouseInteraction && !isMobile) {
-        if (!lastTimeRef.current) lastTimeRef.current = t;
-        const dt = (t - lastTimeRef.current) / 1000;
-        lastTimeRef.current = t;
-        const tau = Math.max(1e-4, mouseDampening);
-        let factor = 1 - Math.exp(-dt / tau);
-        if (factor > 1) factor = 1;
-        const target = mouseTargetRef.current;
-        const cur = uniforms.iMouse.value as number[];
-        cur[0] += (target[0] - cur[0]) * factor;
-        cur[1] += (target[1] - cur[1]) * factor;
-      } else {
-        lastTimeRef.current = t;
-      }
-
-      if (!paused && programRef.current && meshRef.current) {
+      if (!paused) {
         try {
-          renderer.render({ scene: meshRef.current });
+          renderer.render({ scene: mesh });
         } catch (e) {
           console.error(e);
         }
@@ -368,25 +298,10 @@ const Lightfall: React.FC<LightfallProps> = ({
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      if (mouseInteraction) canvas.removeEventListener('pointermove', onPointerMove);
       ro.disconnect();
       if (canvas.parentElement === container) {
         container.removeChild(canvas);
       }
-      const callIfFn = (obj: unknown, key: string) => {
-        const fn = obj && (obj as Record<string, unknown>)[key];
-        if (typeof fn === 'function') {
-          (fn as () => void).call(obj);
-        }
-      };
-      callIfFn(programRef.current, 'remove');
-      callIfFn(geometryRef.current, 'remove');
-      callIfFn(meshRef.current, 'remove');
-      callIfFn(rendererRef.current, 'destroy');
-      programRef.current = null;
-      geometryRef.current = null;
-      meshRef.current = null;
-      rendererRef.current = null;
     };
   }, [
     dpr,
@@ -402,11 +317,7 @@ const Lightfall: React.FC<LightfallProps> = ({
     twinkle,
     zoom,
     backgroundGlow,
-    opacity,
-    mouseInteraction,
-    mouseStrength,
-    mouseRadius,
-    mouseDampening
+    opacity
   ]);
 
   return (
