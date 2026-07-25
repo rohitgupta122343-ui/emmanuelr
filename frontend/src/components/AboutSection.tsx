@@ -51,60 +51,54 @@ const AboutSection = () => {
         {/* Heading */}
         <div className="space-y-12">
           <h2 className="about-text font-display text-4xl font-medium leading-tight text-foreground md:text-5xl lg:text-6xl">
-            <span className="char-emerald">Designing</span> immersive digital
-            experiences where creativity meets code.
+            <span className="char-blue">Crafting</span> compelling visual 
+            identities where design strategy meets storytelling.
           </h2>
 
           {/* Paragraph 1 */}
           <p className="about-text font-body text-lg leading-relaxed text-foreground/70 md:text-xl">
-            Hi, I'm <span className="text-foreground font-medium">Rohit Gupta</span>,
-            a passionate Full-Stack Developer based in{" "}
-            <span className="text-foreground font-medium">Mumbai, India</span>.
-            I enjoy creating modern, interactive websites that combine beautiful
-            design with smooth user experiences. My goal is to build products
-            that people love using while continuously learning new technologies.
+            Hi, I'm <span className="text-foreground font-medium">Emmanuel Rebario</span>, 
+            a passionate Graphic Designer dedicated to transforming complex ideas into 
+            striking, memorable visual narratives. I specialize in crafting distinctive brand 
+            identities, digital assets, and print media that elevate brand presence.
           </p>
 
           {/* Paragraph 2 */}
           <p className="about-text font-body text-lg leading-relaxed text-foreground/70 md:text-xl">
-            I specialize in the{" "}
-            <span className="text-foreground">MERN Stack</span> and have a
-            strong interest in creative web development. I love experimenting
-            with{" "}
+            My core expertise lies in{" "}
+            <span className="text-foreground">Brand Identity & Typography</span>, 
+            blending creative intuition with structured design principles. I work seamlessly across{" "}
             <span className="text-foreground">
-              GSAP, Three.js, Framer Motion
+              Adobe Creative Suite, Figma, and Motion Design
             </span>{" "}
-            and AI-powered tools to craft engaging digital experiences with
-            stunning animations, 3D interactions, and modern UI design.
+            to build cohesive aesthetic ecosystems tailored to every client's unique vision.
           </p>
 
           {/* Paragraph 3 */}
           <p className="about-text font-body text-lg leading-relaxed text-foreground/70 md:text-xl">
-            Every project is an opportunity to improve my skills, solve
-            real-world problems, and push the boundaries of what's possible on
-            the web. Whether I'm building a portfolio, dashboard, SaaS product,
-            or AI application, I focus on writing clean, scalable code while
-            creating memorable user experiences.
+            Every project is a balance of art and purpose. Whether designing editorial layouts, 
+            packaging, digital campaigns, or comprehensive brand guidelines, I focus on precision, 
+            visual clarity, and creating designs that truly resonate with target audiences.
           </p>
 
           {/* Stats */}
           <div className="about-text grid grid-cols-2 gap-8 pt-12 md:grid-cols-4">
             {[
               {
-                value: "20+",
-                label: "Projects Built",
+                value: "30+",
+                label: "Brands Transformed",
               },
               {
-                value: "MERN",
-                label: "Primary Stack",
+                value: "UI/UX",
+                label: "Visual Focus",
               },
               {
-                value: "3D",
-                label: "Creative Web",
+                value: "Adobe",
+                label: "Primary Tooling",
               },
               {
                 value: "∞",
-                label: "Learning",
+                label: "Creativity",
               },
             ].map((stat, i) => (
               <div key={i} className="text-center md:text-left">
