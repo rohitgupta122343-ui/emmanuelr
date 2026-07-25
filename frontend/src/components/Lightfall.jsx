@@ -39,7 +39,11 @@ void main() {
 `;
 
 const fragment = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
+#else
+precision mediump float;
+#endif
 
 uniform vec3  iResolution;
 uniform vec2  iMouse;
@@ -53,7 +57,7 @@ uniform vec3  uColor4;
 uniform vec3  uColor5;
 uniform vec3  uColor6;
 uniform vec3  uColor7;
-uniform int   uColorCount;
+uniform float uColorCount;
 
 uniform vec3  uBgColor;
 uniform vec3  uMouseColor;
@@ -74,17 +78,19 @@ uniform float uMouseRadius;
 varying vec2 vUv;
 
 vec3 palette(float h) {
-  int count = uColorCount;
-  if (count < 1) count = 1;
-  int idx = int(floor(clamp(h, 0.0, 0.999999) * float(count)));
-  if (idx <= 0) return uColor0;
-  if (idx == 1) return uColor1;
-  if (idx == 2) return uColor2;
-  if (idx == 3) return uColor3;
-  if (idx == 4) return uColor4;
-  if (idx == 5) return uColor5;
-  if (idx == 6) return uColor6;
-  return uColor7;
+    int count = int(uColorCount);
+    if (count < 1) count = 1;
+
+    int idx = int(floor(clamp(h, 0.0, 0.999999) * float(count)));
+
+    if (idx <= 0) return uColor0;
+    if (idx == 1) return uColor1;
+    if (idx == 2) return uColor2;
+    if (idx == 3) return uColor3;
+    if (idx == 4) return uColor4;
+    if (idx == 5) return uColor5;
+    if (idx == 6) return uColor6;
+    return uColor7;
 }
 
 vec3 tanhv(vec3 x) {
@@ -97,7 +103,7 @@ vec2 sceneC(vec2 frag, vec2 r) {
   float z = 0.0;
   float d = 1e3;
   vec4 O = vec4(0.0);
-  for (int k = 0; k < 39; k++) {
+for (int k = 0; k < 24; k++)  {
     if (d <= 1e-4) break;
     O = z * normalize(vec4(P, uZoom, 0.0)) - vec4(0.0, 4.0, 1.0, 0.0) / 4.5;
     d = 1.0 - sqrt(length(O * O));
@@ -138,7 +144,7 @@ void mainImage(out vec4 o, vec2 C) {
   vec2 rr = vec2(max(length(fw), 1e-5));
   float tail = 19.0 / max(uStreakLength, 0.05);
 
-  for (int m = 0; m < 16; m++) {
+for (int m = 0; m < 8; m++) {
     if (m >= uStreakCount) break;
     float jf = float(m) + 1.0;
     float ic = fract(sin(dot(vec2(jf, floor(C.x / Y.x + 0.5)), vec2(7.0, 11.0)) * 73.0));
@@ -200,7 +206,7 @@ const Lightfall = ({
     const container = containerRef.current;
     if (!container) return;
 
-    const effectiveDpr = dpr ?? (typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 1.5) : 1);
+  const effectiveDpr = 1;
     const renderer = new Renderer({
       dpr: effectiveDpr,
       alpha: true,
@@ -229,7 +235,7 @@ const Lightfall = ({
       uColor5: { value: arr[5] },
       uColor6: { value: arr[6] },
       uColor7: { value: arr[7] },
-      uColorCount: { value: count },
+     uColorCount: { value: Number(count) },
       uBgColor: { value: hexToRGB(backgroundColor) },
       uMouseColor: { value: avg },
       uSpeed: { value: speed },
@@ -247,7 +253,18 @@ const Lightfall = ({
       uMouseRadius: { value: mouseRadius }
     };
 
-    const program = new Program(gl, { vertex, fragment, uniforms });
+    let program;
+
+try {
+  program = new Program(gl, {
+    vertex,
+    fragment,
+    uniforms,
+  });
+} catch (err) {
+  console.error("Shader compile failed", err);
+  return;
+}
     programRef.current = program;
 
     const geometry = new Triangle(gl);
