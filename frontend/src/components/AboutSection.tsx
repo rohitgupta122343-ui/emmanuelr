@@ -9,30 +9,36 @@ const AboutSection = () => {
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (contentRef.current && sectionRef.current) {
-      const elements = contentRef.current.querySelectorAll(".about-text");
+    // gsap.context se cleanup handling hoti hai (React Strict Mode friendly)
+    const ctx = gsap.context(() => {
+      if (contentRef.current && sectionRef.current) {
+        const elements = contentRef.current.querySelectorAll(".about-text");
 
-      gsap.fromTo(
-        elements,
-        {
-          opacity: 0,
-          y: 60,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 1,
-          stagger: 0.2,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 70%",
-            end: "center center",
-            toggleActions: "play none none none",
+        gsap.fromTo(
+          elements,
+          {
+            opacity: 0,
+            y: 50,
           },
-        }
-      );
-    }
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            stagger: 0.15,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top 75%",
+              end: "bottom center",
+              toggleActions: "play none none reverse", // Smooth reverse when scrolling up
+            },
+          }
+        );
+      }
+    }, sectionRef);
+
+    // Unmount par triggers ko destroy karna taaki Three.js Canvas na ruke
+    return () => ctx.revert();
   }, []);
 
   return (
@@ -42,7 +48,7 @@ const AboutSection = () => {
     >
       <div ref={contentRef} className="mx-auto max-w-5xl">
         {/* Section Label */}
-        <div className="about-text mb-16">
+        <div className="about-text mb-16 will-change-transform">
           <span className="font-body text-xs tracking-[0.5em] text-muted-foreground/50">
             01 — ABOUT ME
           </span>
@@ -50,13 +56,13 @@ const AboutSection = () => {
 
         {/* Heading */}
         <div className="space-y-12">
-          <h2 className="about-text font-display text-4xl font-medium leading-tight text-foreground md:text-5xl lg:text-6xl">
+          <h2 className="about-text font-display text-4xl font-medium leading-tight text-foreground md:text-5xl lg:text-6xl will-change-transform">
             <span className="char-blue">Crafting</span> compelling visual 
             identities where design strategy meets storytelling.
           </h2>
 
           {/* Paragraph 1 */}
-          <p className="about-text font-body text-lg leading-relaxed text-foreground/70 md:text-xl">
+          <p className="about-text font-body text-lg leading-relaxed text-foreground/70 md:text-xl will-change-transform">
             Hi, I'm <span className="text-foreground font-medium">Emmanuel Rebario</span>, 
             a passionate Graphic Designer dedicated to transforming complex ideas into 
             striking, memorable visual narratives. I specialize in crafting distinctive brand 
@@ -64,7 +70,7 @@ const AboutSection = () => {
           </p>
 
           {/* Paragraph 2 */}
-          <p className="about-text font-body text-lg leading-relaxed text-foreground/70 md:text-xl">
+          <p className="about-text font-body text-lg leading-relaxed text-foreground/70 md:text-xl will-change-transform">
             My core expertise lies in{" "}
             <span className="text-foreground">Brand Identity & Typography</span>, 
             blending creative intuition with structured design principles. I work seamlessly across{" "}
@@ -75,14 +81,14 @@ const AboutSection = () => {
           </p>
 
           {/* Paragraph 3 */}
-          <p className="about-text font-body text-lg leading-relaxed text-foreground/70 md:text-xl">
+          <p className="about-text font-body text-lg leading-relaxed text-foreground/70 md:text-xl will-change-transform">
             Every project is a balance of art and purpose. Whether designing editorial layouts, 
             packaging, digital campaigns, or comprehensive brand guidelines, I focus on precision, 
             visual clarity, and creating designs that truly resonate with target audiences.
           </p>
 
           {/* Stats */}
-          <div className="about-text grid grid-cols-2 gap-8 pt-12 md:grid-cols-4">
+          <div className="about-text grid grid-cols-2 gap-8 pt-12 md:grid-cols-4 will-change-transform">
             {[
               {
                 value: "30+",

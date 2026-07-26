@@ -4,6 +4,12 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const SOCIAL_LINKS = {
+  GitHub: 'https://github.com/rohitgupta122343-ui',
+  LinkedIn: 'https://www.linkedin.com/in/rohit-gupta-75aa64398/',
+  Instagram: 'https://www.instagram.com/rohit420_op/',
+};
+
 const ContactSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -15,42 +21,43 @@ const ContactSection = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const SocialLinks ={
-    GitHub: "https://github.com/rohitgupta122343-ui",
-    LinkedIn: "https://www.linkedin.com/in/rohit-gupta-75aa64398/",
-    Instagram: "https://www.instagram.com/rohit420_op/"
-  }
-  useEffect(() => {
-    if (formRef.current && sectionRef.current) {
-      const elements = formRef.current.querySelectorAll('.form-element');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-      gsap.fromTo(
-        elements,
-        { opacity: 0, y: 40 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          stagger: 0.1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top 60%',
-            toggleActions: 'play none none none',
-          },
-        }
-      );
-    }
+  useEffect(() => {
+    // WebGL Canvas and React Strict Mode Safe Context
+    const ctx = gsap.context(() => {
+      if (formRef.current && sectionRef.current) {
+        const elements = formRef.current.querySelectorAll('.form-element');
+
+        gsap.fromTo(
+          elements,
+          { opacity: 0, y: 30 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: 'top 65%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage(null);
 
- 
     try {
-    
-  const  response=  await fetch('https://rohit-z8mv.onrender.com/api/contact', {
+      const response = await fetch('https://rohit-z8mv.onrender.com/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,19 +65,20 @@ const ContactSection = () => {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Something went wrong")
+        throw new Error(data.message || 'Something went wrong');
       }
-      
+
       setIsSuccess(true);
       setFormData({ name: '', email: '', message: '' });
 
-      // Reset success state after animation
+      // Auto dismiss success screen
       setTimeout(() => setIsSuccess(false), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting form:', error);
+      setErrorMessage(error.message || 'Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -98,6 +106,12 @@ const ContactSection = () => {
 
         {/* Contact form */}
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
+          {errorMessage && (
+            <div className="rounded-md border border-red-500/30 bg-red-500/10 p-4 text-center font-body text-sm text-red-400">
+              {errorMessage}
+            </div>
+          )}
+
           {/* Name field */}
           <div className="form-element">
             <label className="mb-2 block font-body text-xs tracking-[0.2em] text-foreground/60">
@@ -108,7 +122,7 @@ const ContactSection = () => {
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
-              className="w-full border-b border-foreground/20 bg-transparent py-4 font-body text-lg text-foreground outline-none transition-colors duration-300 focus:border-foreground/60 placeholder:text-foreground/30"
+              className="w-full border-b border-foreground/20 bg-transparent py-4 font-body text-lg text-foreground outline-none transition-colors duration-300 focus:border-[#10b981] placeholder:text-foreground/30"
               placeholder="Your name"
             />
           </div>
@@ -123,7 +137,7 @@ const ContactSection = () => {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
-              className="w-full border-b border-foreground/20 bg-transparent py-4 font-body text-lg text-foreground outline-none transition-colors duration-300 focus:border-foreground/60 placeholder:text-foreground/30"
+              className="w-full border-b border-foreground/20 bg-transparent py-4 font-body text-lg text-foreground outline-none transition-colors duration-300 focus:border-[#10b981] placeholder:text-foreground/30"
               placeholder="your@email.com"
             />
           </div>
@@ -138,7 +152,7 @@ const ContactSection = () => {
               onChange={(e) => setFormData({ ...formData, message: e.target.value })}
               required
               rows={5}
-              className="w-full resize-none border-b border-foreground/20 bg-transparent py-4 font-body text-lg text-foreground outline-none transition-colors duration-300 focus:border-foreground/60 placeholder:text-foreground/30"
+              className="w-full resize-none border-b border-foreground/20 bg-transparent py-4 font-body text-lg text-foreground outline-none transition-colors duration-300 focus:border-[#10b981] placeholder:text-foreground/30"
               placeholder="Tell me about your project..."
             />
           </div>
@@ -148,7 +162,7 @@ const ContactSection = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="relative w-full border border-foreground/30 bg-transparent px-6 py-5 font-body text-sm tracking-widest uppercase text-foreground transition-all duration-300 hover:border-foreground/60 hover:bg-foreground/5 md:w-auto md:px-16"
+              className="relative w-full rounded-md border border-white/20 bg-white/5 px-6 py-5 font-body text-sm tracking-widest uppercase text-foreground transition-all duration-300 hover:border-[#10b981] hover:bg-[#10b981]/10 hover:text-[#10b981] md:w-auto md:px-16"
             >
               {isSubmitting ? (
                 <span className="inline-flex items-center gap-2">
@@ -158,7 +172,7 @@ const ContactSection = () => {
                     viewBox="0 0 24 24"
                   >
                     <circle
-                      className="opacity-25" 
+                      className="opacity-25"
                       cx="12"
                       cy="12"
                       r="10"
@@ -180,13 +194,13 @@ const ContactSection = () => {
           </div>
         </form>
 
-        {/* Success message */}
+        {/* Success Modal */}
         {isSuccess && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
-            <div className="animate-scale-in text-center">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-primary/40">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
+            <div className="text-center p-8 rounded-2xl border border-[#10b981]/30 bg-black/90">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-[#10b981]/50 bg-[#10b981]/10">
                 <svg
-                  className="h-10 w-10 text-primary"
+                  className="h-10 w-10 text-[#10b981]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -197,7 +211,7 @@ const ContactSection = () => {
                     strokeWidth={1.5}
                     d="M5 13l4 4L19 7"
                   />
-                </svg> 
+                </svg>
               </div>
               <h3 className="font-display text-2xl text-foreground">Message Sent!</h3>
               <p className="mt-2 font-body text-foreground/60">
@@ -210,15 +224,16 @@ const ContactSection = () => {
         {/* Footer links */}
         <div className="mt-24 border-t border-foreground/10 pt-12">
           <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
-            <div className="flex gap-8"> 
-              {/* DUMMY: Replace with your actual social links */}
-              {['GitHub', 'LinkedIn', 'Instagram'].map((social) => (
+            <div className="flex gap-8">
+              {Object.entries(SOCIAL_LINKS).map(([platform, url]) => (
                 <a
-                  key={social}
-                  href={SocialLinks[social as keyof typeof SocialLinks]}
-                  className="font-body text-sm text-foreground/50 transition-colors duration-300 hover:text-foreground"
+                  key={platform}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-body text-sm text-foreground/50 transition-colors duration-300 hover:text-[#10b981]"
                 >
-                  {social}
+                  {platform}
                 </a>
               ))}
             </div>

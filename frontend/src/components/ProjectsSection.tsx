@@ -4,87 +4,94 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// DUMMY PROJECTS - Replace with your actual projects
-const projects = [
-    {
-      id: 1,
-      title: 'perplexity-project',
-      description: 'Perplexity AI Clone is a modern AI-powered search and chat application built with the MERN stack. It features real-time AI conversations, secure authentication, chat history, and a responsive UI, delivering a fast and seamless user experience.',
-      image: 'https://ik.imagekit.io/0wmauyftj/perplexity/Screenshot%20(314).png?updatedAt=1784714817896',
-      tags: ['React', 'Node', 'Langchain','Express','Langgraph'],
-      year: '2026',
-      liveDemo: 'https://perplexity-project-navy.vercel.app/',
-      githubLink: 'https://github.com/rohitgupta122343-ui/perplexity-project'
-    },
-    {
-      id: 2,
-      title: 'Instagram',
-      description: 'EvGenee is an intelligent EV slot booking platform featuring an integrated AI voice agent. It allows users to book high-speed charging slots hands-free while speaking with the AI, save their fleet details, check station availability on their own, and dispatch emergency roadside SOS when stranded.',
-      image: 'https://api.microlink.io/?url=https://evgenee-hackathon.onrender.com/&screenshot=true&meta=false&embed=screenshot.url',
-      tags: ['React', 'Node', 'AI Voice', 'Express', 'MongoDB'],
-      year: '2026',
-      liveDemo: 'https://evgenee-hackathon.onrender.com/',
-      githubLink: 'https://github.com/RitulJain12/EvGenee_Hackathon'
-    },
-    {
-      id: 3,
-      title: 'Figma',
-      description: 'A modern Figma-inspired design tool for creating, editing, and collaborating on UI/UX designs in real time.',
-      image: 'https://ik.imagekit.io/rituls12/Screenshot%202026-01-24%20190655.png',
-      tags: ['React'],
-      liveDemo: "https://figma-nine-tan.vercel.app/",
-      year: '2025'
-    },
-    {
-      id: 4,
-      title: 'Portfolio',
-      description: 'A modern developer portfolio showcasing projects, skills, and creative web experiences.',
-      image: 'https://ik.imagekit.io/rituls12/Screenshot%202026-01-24%20191000.png',
-      tags: ['React', 'TypeScript', 'Css', ,'Tailwindcss', 'Node','Mongodb',],
-      liveDemo: "#microservice",
-      year: '2026'
-    },
+interface Project {
+  id: number;
+  title: string;
+  description: string;
+  image: string;
+  tags: string[];
+  year: string;
+  liveDemo?: string;
+  githubLink?: string;
+}
 
-   
-  ];
-
-
-
-
-
-
+const projects: Project[] = [
+  {
+    id: 1,
+    title: 'perplexity-project',
+    description: 'Perplexity AI Clone is a modern AI-powered search and chat application built with the MERN stack. It features real-time AI conversations, secure authentication, chat history, and a responsive UI, delivering a fast and seamless user experience.',
+    image: 'https://ik.imagekit.io/0wmauyftj/perplexity/Screenshot%20(314).png?updatedAt=1784714817896',
+    tags: ['React', 'Node', 'Langchain', 'Express', 'Langgraph'],
+    year: '2026',
+    liveDemo: 'https://perplexity-project-navy.vercel.app/',
+    githubLink: 'https://github.com/rohitgupta122343-ui/perplexity-project'
+  },
+  {
+    id: 2,
+    title: 'EvGenee',
+    description: 'EvGenee is an intelligent EV slot booking platform featuring an integrated AI voice agent. It allows users to book high-speed charging slots hands-free while speaking with the AI, save their fleet details, check station availability on their own, and dispatch emergency roadside SOS when stranded.',
+    image: 'https://api.microlink.io/?url=https://evgenee-hackathon.onrender.com/&screenshot=true&meta=false&embed=screenshot.url',
+    tags: ['React', 'Node', 'AI Voice', 'Express', 'MongoDB'],
+    year: '2026',
+    liveDemo: 'https://evgenee-hackathon.onrender.com/',
+    githubLink: 'https://github.com/RitulJain12/EvGenee_Hackathon'
+  },
+  {
+    id: 3,
+    title: 'Figma Tool',
+    description: 'A modern Figma-inspired design tool for creating, editing, and collaborating on UI/UX designs in real time.',
+    image: 'https://ik.imagekit.io/rituls12/Screenshot%202026-01-24%20190655.png',
+    tags: ['React', 'TypeScript', 'TailwindCSS'],
+    liveDemo: "https://figma-nine-tan.vercel.app/",
+    year: '2025'
+  },
+  {
+    id: 4,
+    title: 'Portfolio',
+    description: 'A modern developer portfolio showcasing projects, skills, and creative web experiences.',
+    image: 'https://ik.imagekit.io/rituls12/Screenshot%202026-01-24%20191000.png',
+    tags: ['React', 'TypeScript', 'TailwindCSS', 'Node', 'MongoDB'],
+    liveDemo: "#microservice",
+    year: '2026'
+  },
+];
 
 const ProjectsSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (sectionRef.current) {
-      const projectCards = sectionRef.current.querySelectorAll('.project-card');
+    // React Strict-mode safe GSAP context
+    const ctx = gsap.context(() => {
+      if (sectionRef.current) {
+        const projectCards = sectionRef.current.querySelectorAll('.project-card');
 
-      projectCards.forEach((card, i) => {
-        gsap.fromTo(
-          card,
-          {
-            opacity: 0,
-            y: 100,
-            rotateY: i % 2 === 0 ? -15 : 15,
-          },
-          {
-            opacity: 1,
-            y: 0,
-            rotateY: 0,
-            duration: 1.2,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: card,
-              start: 'top 80%',
-              end: 'top 40%',
-              toggleActions: 'play none none reverse',
+        projectCards.forEach((card) => {
+          gsap.fromTo(
+            card,
+            {
+              opacity: 0,
+              y: 60,
+              scale: 0.96,
             },
-          }
-        );
-      });
-    }
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 1,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: card,
+                start: 'top 80%',
+                end: 'top 30%',
+                toggleActions: 'play none none reverse',
+              },
+            }
+          );
+        });
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
   }, []);
 
   return (
@@ -104,45 +111,47 @@ const ProjectsSection = () => {
         </div>
 
         {/* Projects grid */}
-        <div className="space-y-32" style={{ perspective: '1500px' }}>
+        <div className="space-y-32">
           {projects.map((project, i) => (
             <div
               key={project.id}
-              className="project-card group relative"
-              style={{ transformStyle: 'preserve-3d' }}
+              className="project-card group relative will-change-transform"
             >
               <div
                 className={`flex flex-col gap-8 ${
                   i % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'
                 }`}
               >
-                {/* Image */}
-                <div className="relative flex-1 overflow-hidden rounded-sm group">
-                  <div className="relative aspect-[16/10] w-full overflow-hidden">
-                      <img
-                        src={project.image}
-                        alt={project.title}
-                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-black/20" />
-                    </div>
-                    </div>
+                {/* Image Card Container */}
+                <div className="relative flex-1 overflow-hidden rounded-xl border border-white/10 bg-white/5 p-2 backdrop-blur-sm transition-colors duration-300 group-hover:border-[#002E97]/50">
+                  <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg">
+                    <img
+                      src={project.image}
+                      alt={project.title}
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/30 transition-opacity duration-300 group-hover:opacity-10" />
+                  </div>
+                </div>
 
                 {/* Content */}
                 <div className="flex flex-1 flex-col justify-center lg:px-12">
                   <span className="font-body text-xs tracking-[0.3em] text-muted-foreground/50">
                     {project.year}
                   </span>
-                  <h3 className="mt-4 font-display text-2xl font-light text-foreground transition-colors duration-300 group-hover:text-foreground md:text-3xl lg:text-4xl">
+                  <h3 className="mt-4 font-display text-2xl font-light text-foreground transition-colors duration-300 group-hover:text-[#31A8FF] md:text-3xl lg:text-4xl">
                     {project.title}
                   </h3>
-                  <p className="mt-4 font-body text-muted-foreground">{project.description}</p>
+                  <p className="mt-4 font-body text-sm leading-relaxed text-muted-foreground/80 md:text-base">
+                    {project.description}
+                  </p>
 
                   <div className="mt-6 flex flex-wrap gap-2">
-                    {project.tags.map((tag) => (
+                    {project.tags.map((tag, tagIdx) => (
                       <span
-                        key={tag}
-                        className="rounded-full border border-muted/30 px-3 py-1 font-body text-xs text-muted-foreground"
+                        key={`${tag}-${tagIdx}`}
+                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 font-body text-xs text-muted-foreground/90 backdrop-blur-xs"
                       >
                         {tag}
                       </span>
@@ -151,26 +160,24 @@ const ProjectsSection = () => {
 
                   <div className="mt-8 flex gap-4">
                     {project.liveDemo && (
-                      <a 
-                        href={project.liveDemo} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="btn-minimal"
+                      <a
+                        href={project.liveDemo}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-md border border-white/20 bg-white/5 px-5 py-2 font-body text-xs text-white transition-all hover:border-white hover:bg-white hover:text-black"
                       >
                         Live Demo
                       </a>
                     )}
-                    {project.githubLink ? (
-                      <a 
-                        href={project.githubLink} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="btn-minimal"
+                    {project.githubLink && (
+                      <a
+                        href={project.githubLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-md border border-white/10 px-5 py-2 font-body text-xs text-muted-foreground transition-all hover:border-white/40 hover:text-white"
                       >
-                        View Project
+                        View Source
                       </a>
-                    ) : (
-                      <button className="btn-minimal">View Project</button>
                     )}
                   </div>
                 </div>

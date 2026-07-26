@@ -4,7 +4,12 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const services = [
+interface Service {
+  title: string;
+  description: string;
+}
+
+const services: Service[] = [
   {
     title: 'Web Development',
     description: 'Building responsive, fast, and scalable web applications using modern technologies.',
@@ -28,26 +33,31 @@ const OpportunitiesSection = () => {
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (contentRef.current && sectionRef.current) {
-      const elements = contentRef.current.querySelectorAll('.opportunity-item');
+    // React StrictMode friendly GSAP Context
+    const ctx = gsap.context(() => {
+      if (contentRef.current && sectionRef.current) {
+        const elements = contentRef.current.querySelectorAll('.opportunity-item');
 
-      gsap.fromTo(
-        elements,
-        { opacity: 0, x: -50 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.8,
-          stagger: 0.15,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top 60%',
-            toggleActions: 'play none none reverse',
-          },
-        }
-      );
-    }
+        gsap.fromTo(
+          elements,
+          { opacity: 0, x: -30 }, // Slightly reduced offset to keep layout repaints minimal
+          {
+            opacity: 1,
+            x: 0,
+            duration: 0.8,
+            stagger: 0.12,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: 'top 65%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
   }, []);
 
   return (
@@ -65,20 +75,20 @@ const OpportunitiesSection = () => {
 
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
           {/* Left Side */}
-          <div className="opportunity-item">
+          <div className="opportunity-item will-change-transform">
             <h2 className="font-display text-3xl font-light leading-relaxed text-foreground md:text-4xl lg:text-5xl">
               Let's build something{' '}
-              <span className="hover-emerald">amazing</span> together.
+              <span className="text-[#10b981]">amazing</span> together.
             </h2>
 
-            <p className="mt-8 font-body text-lg text-muted-foreground">
+            <p className="mt-8 font-body text-lg text-muted-foreground/90">
               I'm a passionate Full Stack Developer focused on building
               modern, responsive, and high-performance web applications.
               I'm always excited to work on meaningful projects and
               continuously improve my skills.
             </p>
 
-            <p className="mt-4 font-body text-muted-foreground">
+            <p className="mt-4 font-body text-muted-foreground/80">
               Currently, I'm open to internships, full-time opportunities,
               collaborations, and exciting projects where I can contribute,
               learn, and create impactful digital experiences.
@@ -90,15 +100,15 @@ const OpportunitiesSection = () => {
             {services.map((service, i) => (
               <div
                 key={service.title}
-                className="opportunity-item group border-b border-muted/10 pb-8 transition-all duration-300"
+                className="opportunity-item group border-b border-white/10 pb-8 transition-all duration-300 will-change-transform"
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="font-display text-xl text-foreground transition-colors duration-300 group-hover:text-foreground/80">
+                    <h3 className="font-display text-xl text-foreground transition-colors duration-300 group-hover:text-[#10b981]">
                       {service.title}
                     </h3>
 
-                    <p className="mt-2 font-body text-sm text-muted-foreground">
+                    <p className="mt-2 font-body text-sm text-muted-foreground/80">
                       {service.description}
                     </p>
                   </div>
@@ -113,14 +123,14 @@ const OpportunitiesSection = () => {
         </div>
 
         {/* CTA */}
-        <div className="opportunity-item mt-24 text-center">
+        <div className="opportunity-item mt-24 text-center will-change-transform">
           <p className="font-body text-sm tracking-[0.3em] text-muted-foreground/60">
             LET'S CONNECT
           </p>
 
           <a
             href="#contact"
-            className="btn-minimal mt-6 inline-block px-10 py-4 text-base"
+            className="mt-6 inline-block rounded-md border border-white/20 bg-white/5 px-10 py-4 font-body text-base text-white transition-all duration-300 hover:border-[#10b981] hover:bg-[#10b981]/10 hover:text-[#10b981]"
           >
             Get In Touch
           </a>

@@ -1,167 +1,204 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState, useCallback, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import * as THREE from 'three';
 
-// 1. Optimized Particle Field (Reduced count slightly & improved buffer binding)
+// -------------------------------------------------------------
+// CACHED GEOMETRIES & MATERIALS (Prevents Memory Leak & Black Screen)
+// -------------------------------------------------------------
+const OCTAHEDRON_GEO = new THREE.OctahedronGeometry(1, 0);
+const SPHERE_GEO = new THREE.SphereGeometry(0.3, 8, 8);
+
+const WIREFRAME_MAT = new THREE.MeshBasicMaterial({
+  color: '#ffffff',
+  wireframe: true,
+  transparent: true,
+  opacity: 0.05,
+});
+
+const EMERALD_MAT = new THREE.MeshBasicMaterial({
+  color: '#10b981',
+  transparent: true,
+  opacity: 0.4,
+});
+
+// 1. Light-weight Particle Field
 const ParticleField = () => {
   const ref = useRef<THREE.Points>(null);
-  const count = 1500; // 2000 se 1500 karne se FPS kaafi drop nahi hoga
+  const count = 350; // Optimized particle count to save GPU VRAM
 
   const [positions, colors] = useMemo(() => {
-    const positions = new Float32Array(count * 3);
-    const colors = new Float32Array(count * 3);
+    const posArr = new Float32Array(count * 3);
+    const colArr = new Float32Array(count * 3);
 
     for (let i = 0; i < count; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 100;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 100;
+      posArr[i * 3] = (Math.random() - 0.5) * 60;
+      posArr[i * 3 + 1] = (Math.random() - 0.5) * 60;
+      posArr[i * 3 + 2] = (Math.random() - 0.5) * 60;
 
-      if (Math.random() > 0.95) {
-        colors[i * 3] = 0.2;
-        colors[i * 3 + 1] = 0.8;
-        colors[i * 3 + 2] = 0.5;
+      if (Math.random() > 0.9) {
+        colArr[i * 3] = 0.06;
+        colArr[i * 3 + 1] = 0.72;
+        colArr[i * 3 + 2] = 0.5;
       } else {
-        colors[i * 3] = 1;
-        colors[i * 3 + 1] = 1;
-        colors[i * 3 + 2] = 1;
+        colArr[i * 3] = 0.8;
+        colArr[i * 3 + 1] = 0.8;
+        colArr[i * 3 + 2] = 0.8;
       }
     }
 
-    return [positions, colors];
-  }, []);
+    return [posArr, colArr];
+  }, [count]);
 
-  useFrame((state) => {
+  useFrame((_, delta) => {
     if (ref.current) {
-      ref.current.rotation.y = state.clock.getElapsedTime() * 0.02;
-      ref.current.rotation.x = Math.sin(state.clock.getElapsedTime() * 0.01) * 0.1;
+      ref.current.rotation.y += delta * 0.015;
     }
   });
 
   return (
     <points ref={ref}>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-        />
-        <bufferAttribute
-          attach="attributes-color"
-          args={[colors, 3]}
-        />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.15}
+        size={0.2}
         vertexColors
         transparent
-        opacity={0.6}
+        opacity={0.35}
         sizeAttenuation
+        depthWrite={false}
       />
     </points>
   );
 };
 
-// 2. Optimized Floating Shapes
-const FloatingShape = ({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) => {
+// 2. Floating Shapes
+const FloatingShape = ({
+  position,
+  scale = 1,
+}: {
+  position: [number, number, number];
+  scale?: number;
+}) => {
   const ref = useRef<THREE.Mesh>(null);
 
-  useFrame((state) => {
+  useFrame((_, delta) => {
     if (ref.current) {
-      ref.current.rotation.x = state.clock.getElapsedTime() * 0.1;
-      ref.current.rotation.y = state.clock.getElapsedTime() * 0.15;
+      ref.current.rotation.x += delta * 0.08;
+      ref.current.rotation.y += delta * 0.12;
     }
   });
 
   return (
-    <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.8}>
-      <mesh ref={ref} position={position} scale={scale}>
-        <octahedronGeometry args={[1, 0]} />
-        <meshStandardMaterial
-          color="#ffffff"
-          wireframe
-          transparent
-          opacity={0.08}
-        />
-      </mesh>
+    <Float speed={0.8} rotationIntensity={0.2} floatIntensity={0.3}>
+      <mesh
+        ref={ref}
+        position={position}
+        scale={scale}
+        geometry={OCTAHEDRON_GEO}
+        material={WIREFRAME_MAT}
+      />
     </Float>
   );
 };
 
-// 3. Optimized Emerald Orb
+// 3. Emerald Orb
 const EmeraldOrb = ({ position }: { position: [number, number, number] }) => {
   const ref = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     if (ref.current) {
-      ref.current.position.y = position[1] + Math.sin(state.clock.getElapsedTime()) * 0.5;
+      ref.current.position.y =
+        position[1] + Math.sin(state.clock.getElapsedTime() * 0.8) * 0.2;
     }
   });
 
   return (
-    <mesh ref={ref} position={position}>
-      <sphereGeometry args={[0.3, 16, 16]} /> {/* Reduced segments from 32 to 16 for speed */}
-      <meshStandardMaterial
-        color="#10b981"
-        emissive="#10b981"
-        emissiveIntensity={0.5}
-        transparent
-        opacity={0.6}
-      />
-    </mesh>
+    <mesh
+      ref={ref}
+      position={position}
+      geometry={SPHERE_GEO}
+      material={EMERALD_MAT}
+    />
   );
 };
 
-// 4. Smoother Camera Controller (Using lerp logic)
+// 4. Safe Camera Controller
 const CameraController = ({ scrollProgress }: { scrollProgress: number }) => {
-  const { camera } = useThree();
+  const { camera, invalidate } = useThree();
+  const lookTarget = useRef(new THREE.Vector3(0, 0, -10));
 
-  useFrame(() => {
-    const targetZ = 15 - scrollProgress * 30;
-    const targetY = scrollProgress * 5;
-    const targetX = Math.sin(scrollProgress * Math.PI) * 5;
+  useEffect(() => {
+    invalidate();
+  }, [scrollProgress, invalidate]);
 
-    // Smooth movement with lerp
-    camera.position.x += (targetX - camera.position.x) * 0.05;
-    camera.position.y += (targetY - camera.position.y) * 0.05;
-    camera.position.z += (targetZ - camera.position.z) * 0.05;
+  useFrame((_, delta) => {
+    const clampedProgress = Math.max(0, Math.min(1, scrollProgress || 0));
 
-    camera.lookAt(0, scrollProgress * 3, -10);
+    const targetZ = 15 - clampedProgress * 20;
+    const targetY = clampedProgress * 3;
+    const targetX = Math.sin(clampedProgress * Math.PI) * 3;
+
+    const step = Math.min(delta * 2, 0.1);
+    camera.position.x += (targetX - camera.position.x) * step;
+    camera.position.y += (targetY - camera.position.y) * step;
+    camera.position.z += (targetZ - camera.position.z) * step;
+
+    lookTarget.current.y = clampedProgress * 2;
+    camera.lookAt(lookTarget.current);
   });
 
   return null;
 };
 
+// 5. Main Canvas Scene
 interface Scene3DProps {
   scrollProgress: number;
 }
 
 const Scene3D = ({ scrollProgress }: Scene3DProps) => {
+  const [sceneKey, setSceneKey] = useState(0);
+
+  const handleCreated = useCallback(({ gl }: { gl: THREE.WebGLRenderer }) => {
+    const canvas = gl.domElement;
+
+    // Handle Context Loss gracefully
+    const onContextLost = (e: Event) => {
+      e.preventDefault();
+      console.warn('WebGL Context Lost. Reloading Canvas Scene...');
+      setTimeout(() => {
+        setSceneKey((k) => k + 1); // Force re-mount canvas on context loss
+      }, 300);
+    };
+
+    canvas.addEventListener('webglcontextlost', onContextLost, false);
+  }, []);
+
   return (
-    // Direct CSS background di hai taaki rendering delay me screen black flicker na kare
-    <div className="fixed inset-0 z-0 bg-black pointer-events-none">
+    <div className="fixed inset-0 z-0 bg-[#0a0a0a] pointer-events-none">
       <Canvas
+        key={sceneKey}
         camera={{ position: [0, 0, 15], fov: 60 }}
-        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-        dpr={[1, 1.5]} // Device Pixel Ratio limit kiya lag rokne ke liye (Retina screens par FPS fix)
+        gl={{
+          antialias: false,
+          powerPreference: 'low-power', // Prevents GPU Crash on heavy sections
+          preserveDrawingBuffer: false,
+          failIfMajorPerformanceCaveat: false,
+          stencil: false,
+        }}
+        dpr={1} // Strict 1 DPR to stop black screen buffer overflow
+        onCreated={handleCreated}
       >
-        <fog attach="fog" args={['#000000', 10, 80]} />
-
-        <ambientLight intensity={0.2} />
-        <pointLight position={[10, 10, 10]} intensity={0.5} />
-        <pointLight position={[-10, -10, -10]} intensity={0.3} color="#10b981" />
-
         <CameraController scrollProgress={scrollProgress} />
         <ParticleField />
 
-        {/* Floating Shapes */}
-        <FloatingShape position={[-8, 3, -10]} scale={2} />
-        <FloatingShape position={[10, -2, -15]} scale={1.5} />
-        <FloatingShape position={[-5, -5, -20]} scale={3} />
-        <FloatingShape position={[8, 5, -25]} scale={2.5} />
+        <FloatingShape position={[-5, 2, -10]} scale={1.5} />
+        <FloatingShape position={[6, -2, -12]} scale={1.2} />
 
-        {/* Emerald Accents */}
-        <EmeraldOrb position={[-12, 0, -8]} />
-        <EmeraldOrb position={[15, 4, -20]} />
+        <EmeraldOrb position={[-6, 0, -8]} />
+        <EmeraldOrb position={[8, 2, -14]} />
       </Canvas>
     </div>
   );
