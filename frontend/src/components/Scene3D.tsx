@@ -188,7 +188,7 @@ const Scene3D = ({ scrollProgress }: Scene3DProps) => {
           failIfMajorPerformanceCaveat: false,
           stencil: false,
         }}
-        dpr={1} // Strict 1 DPR to stop black screen buffer overflow
+        dpr={1} // Strict 1 DPR to stop black screen buffer 
         onCreated={handleCreated}
       >
         <CameraController scrollProgress={scrollProgress} />
