@@ -32,52 +32,52 @@ const TechStackSection = () => {
   const counterTweensRef = useRef<gsap.core.Tween[]>([]);
 
   useEffect(() => {
-    if (circleRef.current && sectionRef.current) {
-      const items = circleRef.current.querySelectorAll('.tech-item');
-      const iconBadges = circleRef.current.querySelectorAll('.icon-badge');
+    const ctx = gsap.context(() => {
+      if (circleRef.current && sectionRef.current) {
+        const items = circleRef.current.querySelectorAll('.tech-item');
+        const iconBadges = circleRef.current.querySelectorAll('.icon-badge');
 
-      // 1. Entrance Pop-in Animation
-      gsap.fromTo(
-        items,
-        { opacity: 0, scale: 0 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 0.9,
-          stagger: 0.05,
-          ease: 'back.out(1.7)',
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top 65%',
-            toggleActions: 'play none none reverse',
-          },
-        }
-      );
+        // 1. Entrance Pop-in Animation
+        gsap.fromTo(
+          items,
+          { opacity: 0, scale: 0 },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.9,
+            stagger: 0.05,
+            ease: 'back.out(1.7)',
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: 'top 65%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
 
-      // 2. Orbital Clockwise Rotation
-      orbitTweenRef.current = gsap.to(circleRef.current, {
-        rotation: 360,
-        duration: 100,
-        repeat: -1,
-        ease: 'none',
-      });
-
-      // 3. Counter-Rotate Badges so Logos Stay Upright During Orbital Rotation
-      iconBadges.forEach((badge) => {
-        const tween = gsap.to(badge, {
-          rotation: -360,
+        // 2. Orbital Clockwise Rotation
+        orbitTweenRef.current = gsap.to(circleRef.current, {
+          rotation: 360,
           duration: 100,
           repeat: -1,
           ease: 'none',
         });
-        counterTweensRef.current.push(tween);
-      });
-    }
 
-    return () => {
-      if (orbitTweenRef.current) orbitTweenRef.current.kill();
-      counterTweensRef.current.forEach((t) => t.kill());
-    };
+        // 3. Counter-Rotate Badges so Logos Stay Upright During Orbital Rotation
+        counterTweensRef.current = [];
+        iconBadges.forEach((badge) => {
+          const tween = gsap.to(badge, {
+            rotation: -360,
+            duration: 100,
+            repeat: -1,
+            ease: 'none',
+          });
+          counterTweensRef.current.push(tween);
+        });
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
   }, []);
 
   const handleMouseEnter = () => {
@@ -93,86 +93,94 @@ const TechStackSection = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative z-20 flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-28"
+      className="relative z-20 flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-16 sm:px-6 sm:py-24 md:py-28"
     >
       <div className="relative mx-auto w-full max-w-5xl">
         {/* Top Minimal Label */}
-        <div className="mb-6 text-center md:text-left">
-          <span className="font-body text-xs tracking-[0.5em] text-muted-foreground/60 uppercase">
+        <div className="mb-4 text-center md:mb-6 md:text-left">
+          <span className="font-body text-[10px] tracking-[0.4em] text-muted-foreground/60 uppercase sm:text-xs sm:tracking-[0.5em]">
             02 — TOOLKIT & EXPERTISE
           </span>
         </div>
 
         {/* Section Heading */}
         <div className="relative z-10 text-center">
-          <h2 className="font-display text-4xl font-medium tracking-wide text-foreground md:text-5xl lg:text-6xl">
+          <h2 className="font-display text-3xl font-medium tracking-wide text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
             Design <span className="text-[#002E97]">Ecosystem</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-lg font-body text-sm text-muted-foreground md:text-base">
+          <p className="mx-auto mt-3 max-w-lg font-body text-xs text-muted-foreground sm:text-sm md:mt-4 md:text-base">
             Essential creative suite and digital tools leveraged by Emmanuel Rebario to craft high-impact brand identities and visual experiences.
           </p>
         </div>
 
-        {/* Interactive Orbital Canvas */}
-        <div
-          ref={circleRef}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          className="relative mx-auto mt-14 h-[380px] w-[380px] sm:h-[460px] sm:w-[460px] md:h-[520px] md:w-[520px] lg:h-[580px] lg:w-[580px]"
-        >
-          {/* Orbital Concentric Geometry Rings */}
-          <div className="absolute inset-0 rounded-full border border-white/10 shadow-[inset_0_0_30px_rgba(255,255,255,0.02)]" />
-          <div className="absolute inset-[18%] rounded-full border border-white/5" />
-          <div className="absolute inset-[36%] rounded-full border border-[#002E97]/25" />
+        {/* Interactive Orbital Canvas - Responsive Outer Wrapper */}
+        <div className="relative mx-auto mt-10 flex aspect-square w-[85vw] max-w-[340px] items-center justify-center sm:mt-14 sm:w-full sm:max-w-[460px] md:max-w-[520px] lg:max-w-[580px]">
+          <div
+            ref={circleRef}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            className="relative h-full w-full"
+          >
+            {/* Orbital Concentric Geometry Rings */}
+            <div className="absolute inset-0 rounded-full border border-white/10 shadow-[inset_0_0_30px_rgba(255,255,255,0.02)]" />
+            <div className="absolute inset-[18%] rounded-full border border-white/5" />
+            <div className="absolute inset-[36%] rounded-full border border-[#002E97]/25" />
 
-          {/* Software Icons Positioned in Radial Grid */}
-          {techStack.map((tech, i) => {
-            const isOuter = i % 2 === 0;
-            const radius = isOuter ? 46 : 28;
-            const angleOffset = isOuter ? 0 : Math.PI / techStack.length;
-            const angle = (i / techStack.length) * Math.PI * 2 - Math.PI / 2 + angleOffset;
-            const x = 50 + Math.cos(angle) * radius;
-            const y = 50 + Math.sin(angle) * radius;
+            {/* Software Icons Positioned in Radial Grid */}
+            {techStack.map((tech, i) => {
+              const isOuter = i % 2 === 0;
+              const radius = isOuter ? 44 : 27; // Slightly tighter radius for small screens
+              const angleOffset = isOuter ? 0 : Math.PI / techStack.length;
+              const angle = (i / techStack.length) * Math.PI * 2 - Math.PI / 2 + angleOffset;
+              const x = 50 + Math.cos(angle) * radius;
+              const y = 50 + Math.sin(angle) * radius;
 
-            return (
-              <div
-                key={`${tech.name}-${i}`}
-                className="tech-item group absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-20"
-                style={{ left: `${x}%`, top: `${y}%` }}
-              >
-                {/* Icon Container with Glassmorphism */}
-                <div className="icon-badge relative flex h-14 w-14 items-center justify-center rounded-full border border-white/15 bg-black/60 backdrop-blur-md transition-all duration-300 group-hover:scale-125 group-hover:border-[#002E97] group-hover:bg-black/95 group-hover:shadow-[0_0_30px_rgba(0,46,151,0.75)] md:h-16 md:w-16">
-                  <img
-                    src={tech.icon}
-                    alt={tech.name}
-                    className="h-7 w-7 object-contain transition-transform duration-300 group-hover:scale-110 md:h-8 md:w-8"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = PHOTOSHOP_SVG;
-                    }}
-                  />
-                </div>
+              // Position tooltip dynamically to avoid clipping near screen borders
+              const isBottomHalf = y > 60;
+              const tooltipPosClass = isBottomHalf
+                ? 'bottom-full mb-2.5 top-auto translate-y-[-4px] group-hover:translate-y-0'
+                : 'top-full mt-2.5 translate-y-1 group-hover:translate-y-0';
 
-                {/* Professional Tooltip */}
-                <div className="pointer-events-none absolute left-1/2 top-full z-40 mt-3 -translate-x-1/2 translate-y-2 whitespace-nowrap opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                  <div className="flex flex-col items-center rounded-lg border border-[#002E97]/50 bg-black/95 px-3.5 py-1.5 shadow-2xl backdrop-blur-xl">
-                    <span className="font-body text-xs font-semibold text-white tracking-wide">{tech.name}</span>
-                    <span className="font-body text-[10px] text-muted-foreground/70">{tech.category}</span>
+              return (
+                <div
+                  key={`${tech.name}-${i}`}
+                  className="tech-item group absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-20"
+                  style={{ left: `${x}%`, top: `${y}%` }}
+                >
+                  {/* Icon Container with Glassmorphism */}
+                  <div className="icon-badge relative flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/60 backdrop-blur-md transition-all duration-300 group-hover:scale-125 group-hover:border-[#002E97] group-hover:bg-black/95 group-hover:shadow-[0_0_30px_rgba(0,46,151,0.75)] sm:h-12 sm:w-12 md:h-16 md:w-16">
+                    <img
+                      src={tech.icon}
+                      alt={tech.name}
+                      className="h-5 w-5 object-contain transition-transform duration-300 group-hover:scale-110 sm:h-6 sm:w-6 md:h-8 md:w-8"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = PHOTOSHOP_SVG;
+                      }}
+                    />
+                  </div>
+
+                  {/* Professional Tooltip */}
+                  <div className={`pointer-events-none absolute left-1/2 z-40 -translate-x-1/2 whitespace-nowrap opacity-0 transition-all duration-300 group-hover:opacity-100 ${tooltipPosClass}`}>
+                    <div className="flex flex-col items-center rounded-lg border border-[#002E97]/50 bg-black/95 px-2.5 py-1 shadow-2xl backdrop-blur-xl sm:px-3.5 sm:py-1.5">
+                      <span className="font-body text-[10px] font-semibold tracking-wide text-white sm:text-xs">{tech.name}</span>
+                      <span className="font-body text-[9px] text-muted-foreground/70 sm:text-[10px]">{tech.category}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
-          {/* Central Blue Ambient Radial Glow */}
-          <div
-            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{
-              width: '200px',
-              height: '200px',
-              background: 'radial-gradient(circle, rgba(0, 46, 151, 0.35) 0%, transparent 70%)',
-              filter: 'blur(40px)',
-            }}
-          />
+            {/* Central Blue Ambient Radial Glow */}
+            <div
+              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{
+                width: '40%',
+                height: '40%',
+                background: 'radial-gradient(circle, rgba(0, 46, 151, 0.35) 0%, transparent 70%)',
+                filter: 'blur(30px)',
+              }}
+            />
+          </div>
         </div>
       </div>
     </section>
