@@ -1,204 +1,172 @@
-import { useRef, useMemo, useState, useCallback, useEffect } from 'react';
+import { useRef, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Float } from '@react-three/drei';
+import { Float, Stars, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 
-// -------------------------------------------------------------
-// CACHED GEOMETRIES & MATERIALS (Prevents Memory Leak & Black Screen)
-// -------------------------------------------------------------
-const OCTAHEDRON_GEO = new THREE.OctahedronGeometry(1, 0);
-const SPHERE_GEO = new THREE.SphereGeometry(0.3, 8, 8);
-
-const WIREFRAME_MAT = new THREE.MeshBasicMaterial({
-  color: '#ffffff',
-  wireframe: true,
-  transparent: true,
-  opacity: 0.05,
-});
-
-const EMERALD_MAT = new THREE.MeshBasicMaterial({
-  color: '#10b981',
-  transparent: true,
-  opacity: 0.4,
-});
-
-// 1. Light-weight Particle Field
+// Particle field component
 const ParticleField = () => {
   const ref = useRef<THREE.Points>(null);
-  const count = 350; // Optimized particle count to save GPU VRAM
+  const count = 4000;
 
   const [positions, colors] = useMemo(() => {
-    const posArr = new Float32Array(count * 3);
-    const colArr = new Float32Array(count * 3);
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
 
     for (let i = 0; i < count; i++) {
-      posArr[i * 3] = (Math.random() - 0.5) * 60;
-      posArr[i * 3 + 1] = (Math.random() - 0.5) * 60;
-      posArr[i * 3 + 2] = (Math.random() - 0.5) * 60;
+      positions[i * 3] = (Math.random() - 0.5) * 100;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 100;
 
-      if (Math.random() > 0.9) {
-        colArr[i * 3] = 0.06;
-        colArr[i * 3 + 1] = 0.72;
-        colArr[i * 3 + 2] = 0.5;
+      // Most particles white, few emerald
+      if (Math.random() > 0.95) {
+        colors[i * 3] = 0.2;
+        colors[i * 3 + 1] = 0.8;
+        colors[i * 3 + 2] = 0.5;
       } else {
-        colArr[i * 3] = 0.8;
-        colArr[i * 3 + 1] = 0.8;
-        colArr[i * 3 + 2] = 0.8;
+        colors[i * 3] = 1;
+        colors[i * 3 + 1] = 1;
+        colors[i * 3 + 2] = 1;
       }
     }
 
-    return [posArr, colArr];
-  }, [count]);
+    return [positions, colors];
+  }, []);
 
-  useFrame((_, delta) => {
+  useFrame((state) => {
     if (ref.current) {
-      ref.current.rotation.y += delta * 0.015;
+      ref.current.rotation.y = state.clock.elapsedTime * 0.02;
+      ref.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.01) * 0.1;
     }
   });
 
   return (
     <points ref={ref}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+        <bufferAttribute
+          attach="attributes-position"
+          count={count}
+          array={positions}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          count={count}
+          array={colors}
+          itemSize={3}
+        />
       </bufferGeometry>
       <pointsMaterial
-        size={0.2}
+        size={0.15}
         vertexColors
         transparent
-        opacity={0.35}
+        opacity={0.6}
         sizeAttenuation
-        depthWrite={false}
       />
     </points>
   );
 };
 
-// 2. Floating Shapes
-const FloatingShape = ({
-  position,
-  scale = 1,
-}: {
-  position: [number, number, number];
-  scale?: number;
-}) => {
+// Floating geometric shapes
+const FloatingShape = ({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) => {
   const ref = useRef<THREE.Mesh>(null);
 
-  useFrame((_, delta) => {
+  useFrame((state) => {
     if (ref.current) {
-      ref.current.rotation.x += delta * 0.08;
-      ref.current.rotation.y += delta * 0.12;
+      ref.current.rotation.x = state.clock.elapsedTime * 0.2;
+      ref.current.rotation.y = state.clock.elapsedTime * 0.3;
     }
   });
 
   return (
-    <Float speed={0.8} rotationIntensity={0.2} floatIntensity={0.3}>
-      <mesh
-        ref={ref}
-        position={position}
-        scale={scale}
-        geometry={OCTAHEDRON_GEO}
-        material={WIREFRAME_MAT}
-      />
+    <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
+      <mesh ref={ref} position={position} scale={scale}>
+        <octahedronGeometry args={[1, 0]} />
+        <meshStandardMaterial
+          color="#ffffff"
+          wireframe
+          transparent
+          opacity={0.1}
+        />
+      </mesh>
     </Float>
   );
 };
 
-// 3. Emerald Orb
+// Emerald accent sphere
 const EmeraldOrb = ({ position }: { position: [number, number, number] }) => {
   const ref = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     if (ref.current) {
-      ref.current.position.y =
-        position[1] + Math.sin(state.clock.getElapsedTime() * 0.8) * 0.2;
+      ref.current.position.y = position[1] + Math.sin(state.clock.elapsedTime) * 0.5;
     }
   });
 
   return (
-    <mesh
-      ref={ref}
-      position={position}
-      geometry={SPHERE_GEO}
-      material={EMERALD_MAT}
-    />
+    <mesh ref={ref} position={position}>
+      <sphereGeometry args={[0.3, 32, 32]} />
+      <meshStandardMaterial
+        color="#10b981"
+        emissive="#10b981"
+        emissiveIntensity={0.5}
+        transparent
+        opacity={0.6}
+      />
+    </mesh>
   );
 };
 
-// 4. Safe Camera Controller
+// Camera controller that responds to scroll
 const CameraController = ({ scrollProgress }: { scrollProgress: number }) => {
-  const { camera, invalidate } = useThree();
-  const lookTarget = useRef(new THREE.Vector3(0, 0, -10));
+  const { camera } = useThree();
 
-  useEffect(() => {
-    invalidate();
-  }, [scrollProgress, invalidate]);
+  useFrame(() => {
+    // Move camera based on scroll
+    const targetZ = 15 - scrollProgress * 30;
+    const targetY = scrollProgress * 5;
+    const targetX = Math.sin(scrollProgress * Math.PI) * 5;
 
-  useFrame((_, delta) => {
-    const clampedProgress = Math.max(0, Math.min(1, scrollProgress || 0));
+    camera.position.x += (targetX - camera.position.x) * 0.05;
+    camera.position.y += (targetY - camera.position.y) * 0.05;
+    camera.position.z += (targetZ - camera.position.z) * 0.05;
 
-    const targetZ = 15 - clampedProgress * 20;
-    const targetY = clampedProgress * 3;
-    const targetX = Math.sin(clampedProgress * Math.PI) * 3;
-
-    const step = Math.min(delta * 2, 0.1);
-    camera.position.x += (targetX - camera.position.x) * step;
-    camera.position.y += (targetY - camera.position.y) * step;
-    camera.position.z += (targetZ - camera.position.z) * step;
-
-    lookTarget.current.y = clampedProgress * 2;
-    camera.lookAt(lookTarget.current);
+    camera.lookAt(0, scrollProgress * 3, -10);
   });
 
   return null;
 };
 
-// 5. Main Canvas Scene
 interface Scene3DProps {
   scrollProgress: number;
 }
 
 const Scene3D = ({ scrollProgress }: Scene3DProps) => {
-  const [sceneKey, setSceneKey] = useState(0);
-
-  const handleCreated = useCallback(({ gl }: { gl: THREE.WebGLRenderer }) => {
-    const canvas = gl.domElement;
-
-    // Handle Context Loss gracefully
-    const onContextLost = (e: Event) => {
-      e.preventDefault();
-      console.warn('WebGL Context Lost. Reloading Canvas Scene...');
-      setTimeout(() => {
-        setSceneKey((k) => k + 1); // Force re-mount canvas on context loss
-      }, 300);
-    };
-
-    canvas.addEventListener('webglcontextlost', onContextLost, false);
-  }, []);
-
   return (
-    <div className="fixed inset-0 z-0 bg-[#0a0a0a] pointer-events-none">
+    <div className="fixed inset-0 z-0">
       <Canvas
-        key={sceneKey}
         camera={{ position: [0, 0, 15], fov: 60 }}
-        gl={{
-          antialias: false,
-          powerPreference: 'low-power', // Prevents GPU Crash on heavy sections
-          preserveDrawingBuffer: false,
-          failIfMajorPerformanceCaveat: false,
-          stencil: false,
-        }}
-        dpr={1} // Strict 1 DPR to stop black screen buffer 
-        onCreated={handleCreated}
+        gl={{ antialias: true, alpha: true }}
       >
+        <color attach="background" args={['#000000']} />
+        <fog attach="fog" args={['#000000', 10, 80]} />
+
+        <ambientLight intensity={0.2} />
+        <pointLight position={[10, 10, 10]} intensity={0.5} />
+        <pointLight position={[-10, -10, -10]} intensity={0.3} color="#10b981" />
+
         <CameraController scrollProgress={scrollProgress} />
         <ParticleField />
+        <Stars radius={100} depth={50} count={3000} factor={4} saturation={0} fade speed={0.5} />
 
-        <FloatingShape position={[-5, 2, -10]} scale={1.5} />
-        <FloatingShape position={[6, -2, -12]} scale={1.2} />
+        {/* Floating shapes */}
+        <FloatingShape position={[-8, 3, -10]} scale={2} />
+        <FloatingShape position={[10, -2, -15]} scale={1.5} />
+        <FloatingShape position={[-5, -5, -20]} scale={3} />
+        <FloatingShape position={[8, 5, -25]} scale={2.5} />
 
-        <EmeraldOrb position={[-6, 0, -8]} />
-        <EmeraldOrb position={[8, 2, -14]} />
+        {/* Subtle emerald accents */}
+        <EmeraldOrb position={[-12, 0, -8]} />
+        <EmeraldOrb position={[15, 4, -20]} />
       </Canvas>
     </div>
   );
