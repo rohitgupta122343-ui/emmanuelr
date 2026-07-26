@@ -18,13 +18,12 @@ interface Project {
 const projects: Project[] = [
   {
     id: 1,
-    title: 'perplexity-project',
-    description: 'Perplexity AI Clone is a modern AI-powered search and chat application built with the MERN stack. It features real-time AI conversations, secure authentication, chat history, and a responsive UI, delivering a fast and seamless user experience.',
-    image: 'https://ik.imagekit.io/0wmauyftj/perplexity/Screenshot%20(314).png?updatedAt=1784714817896',
-    tags: ['React', 'Node', 'Langchain', 'Express', 'Langgraph'],
+    title: 'REVERIE — Between Dreams and Reality',
+    description: 'Reverie captures the fragile space between illusion and consciousness—a moment where reality softens and the mind drifts freely into the unknown. This piece is centered around the idea of escapism, where the boundaries of the physical world dissolve into something more surreal and emotionally driven.',
+    image: 'https://ik.imagekit.io/0wmauyftj/emmanuel/Screenshot%20(348).png',
+    tags: ['Photoshop', 'Illustrator'],
     year: '2026',
-    liveDemo: 'https://perplexity-project-navy.vercel.app/',
-    githubLink: 'https://github.com/rohitgupta122343-ui/perplexity-project'
+    liveDemo: 'https://www.behance.net/gallery/248050709/REVERIE-%28Music-cover-poster%29'
   },
   {
     id: 2,

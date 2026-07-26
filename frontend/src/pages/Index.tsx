@@ -34,17 +34,26 @@ const Index = () => {
 }, []);
 
 useEffect(() => {
-  const startMusic = () => {
-    audioRef.current?.play().catch(console.error);
+  const startMusic = async () => {
+    if (!audioRef.current) return;
 
-    window.removeEventListener("pointerdown", startMusic);
-    window.removeEventListener("keydown", startMusic);
-    window.removeEventListener("touchstart", startMusic);
+    try {
+      await audioRef.current.play();
+
+      console.log("Music started");
+
+      window.removeEventListener("pointerdown", startMusic);
+      window.removeEventListener("keydown", startMusic);
+      window.removeEventListener("touchstart", startMusic);
+
+    } catch (error) {
+      console.log("Music error:", error);
+    }
   };
 
-  window.addEventListener("pointerdown", startMusic);
-  window.addEventListener("keydown", startMusic);
-  window.addEventListener("touchstart", startMusic);
+  window.addEventListener("pointerdown", startMusic, { once: true });
+  window.addEventListener("keydown", startMusic, { once: true });
+  window.addEventListener("touchstart", startMusic, { once: true });
 
   return () => {
     window.removeEventListener("pointerdown", startMusic);
