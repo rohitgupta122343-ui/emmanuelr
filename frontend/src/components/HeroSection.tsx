@@ -11,7 +11,7 @@ const Hero = () => {
         setPaused(!entry.isIntersecting);
       },
       {
-        threshold: 0.3,
+        threshold: 0.1,
       }
     );
 
@@ -24,29 +24,30 @@ const Hero = () => {
     <section
       ref={heroRef}
       className="relative h-screen w-full overflow-hidden bg-black"
+      style={{ transform: "translateZ(0)", willChange: "transform" }}
     >
-      {/* Background */}
-      <div className="absolute inset-0">
-       <Lightfall
-  paused={paused}
-  colors={["#A6C8FF", "#5227FF", "#FF9FFC"]}
-  backgroundColor="#0A29FF"
-  speed={0.25}
-  streakCount={2}
-  streakWidth={0.7}
-  streakLength={0.9}
-  glow={0.8}
-  density={0.3}
-  twinkle={0.3}
-  zoom={1.8}
-  backgroundGlow={0.25}
-  opacity={1}
-  mouseInteraction={false}
-/>
-  </div>
+      {/* Background Lightfall Effect */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <Lightfall
+          paused={paused}
+          colors={["#A6C8FF", "#5227FF", "#FF9FFC"]}
+          backgroundColor="#0A29FF"
+          speed={0.25}
+          streakCount={2}
+          streakWidth={0.7}
+          streakLength={0.9}
+          glow={0.8}
+          density={0.3}
+          twinkle={0.3}
+          zoom={1.8}
+          backgroundGlow={0.25}
+          opacity={1}
+          mouseInteraction={false}
+        />
+      </div>
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/30" />
+      <div className="absolute inset-0 bg-black/40 z-1 pointer-events-none" />
 
       {/* Content */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center">
@@ -70,11 +71,11 @@ const Hero = () => {
         </p>
 
         <div className="mt-8 flex flex-col gap-4 sm:mt-10 sm:flex-row">
-          <button className="rounded-full bg-white px-8 py-3 text-sm font-semibold text-black transition duration-300 hover:scale-105">
+          <button className="rounded-full bg-white px-8 py-3 text-sm font-semibold text-black transition duration-300 hover:scale-105 pointer-events-auto">
             View Work
           </button>
 
-          <button className="rounded-full border border-white px-8 py-3 text-sm font-semibold text-white transition duration-300 hover:bg-white hover:text-black">
+          <button className="rounded-full border border-white px-8 py-3 text-sm font-semibold text-white transition duration-300 hover:bg-white hover:text-black pointer-events-auto">
             Contact Me
           </button>
         </div>

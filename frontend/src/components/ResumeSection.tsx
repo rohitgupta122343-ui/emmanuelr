@@ -61,7 +61,7 @@ const ResumeSection = () => {
           onClick={handleDownload}
         >
           {/* Paper effect - Flat 2D modern glassmorphism design */}
-          <div className="relative mx-auto h-[400px] w-[280px] overflow-hidden rounded-xl border border-white/10 bg-white/5 p-8 backdrop-blur-md transition-all duration-500 group-hover:border-[#10b981]/50 group-hover:bg-white/10 group-hover:shadow-[0_0_50px_rgba(16,185,129,0.15)] md:h-[500px] md:w-[350px]">
+          <div className="relative mx-auto h-[400px] w-[280px] overflow-hidden rounded-xl border border-white/10 bg-white/5 p-8 backdrop-blur-md transition-all duration-500 group-hover:border-[rgb(0,46,151)] group-hover:bg-white/10 group-hover:shadow-[0_0_50px_rgba(0,46,151,0.25)] md:h-[500px] md:w-[350px]">
             {/* Content lines */}
             <div className="space-y-6 opacity-70 transition-opacity duration-300 group-hover:opacity-100">
               {/* Header */}
@@ -73,7 +73,7 @@ const ResumeSection = () => {
               {/* Sections */}
               {[1, 2, 3].map((section) => (
                 <div key={section} className="space-y-2.5">
-                  <div className="h-3 w-20 rounded bg-[#10b981]/40" />
+                  <div className="h-3 w-20 rounded bg-[rgb(0,46,151)]/80" />
                   <div className="h-2 w-full rounded bg-white/15" />
                   <div className="h-2 w-4/5 rounded bg-white/15" />
                   <div className="h-2 w-3/5 rounded bg-white/15" />
@@ -83,7 +83,7 @@ const ResumeSection = () => {
 
             {/* Hover overlay */}
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xs opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-              <div className="rounded-full border border-[#10b981]/40 bg-[#10b981]/20 p-4 text-[#10b981] mb-3">
+              <div className="rounded-full border border-[rgb(0,46,151)] bg-[rgb(0,46,151)]/20 p-4 text-blue-400 mb-3">
                 <svg
                   className="h-6 w-6"
                   fill="none"
@@ -105,13 +105,13 @@ const ResumeSection = () => {
           </div>
 
           {/* Glow Shadow */}
-          <div className="mx-auto mt-6 h-4 w-[200px] rounded-full bg-[#10b981]/10 blur-xl transition-all duration-500 group-hover:bg-[#10b981]/25 md:w-[250px]" />
+          <div className="mx-auto mt-6 h-4 w-[200px] rounded-full bg-[rgb(0,46,151)]/20 blur-xl transition-all duration-500 group-hover:bg-[rgb(0,46,151)]/40 md:w-[250px]" />
         </div>
 
         {/* Download button */}
         <button
           onClick={handleDownload}
-          className="mt-10 inline-flex items-center gap-3 rounded-md border border-white/20 bg-white/5 px-8 py-3.5 font-body text-sm text-white transition-all duration-300 hover:border-[#10b981] hover:bg-[#10b981]/10 hover:text-[#10b981]"
+          className="mt-10 inline-flex items-center gap-3 rounded-md border border-white/20 bg-white/5 px-8 py-3.5 font-body text-sm text-white transition-all duration-300 hover:border-[rgb(0,46,151)] hover:bg-[rgb(0,46,151)]/20 hover:text-blue-300"
         >
           <svg
             className="h-4 w-4"

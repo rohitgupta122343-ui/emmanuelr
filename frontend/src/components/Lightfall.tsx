@@ -63,7 +63,6 @@ void main() {
 }
 `;
 
-// Optimized Mobile-safe Fragment Shader
 const fragment = `
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
@@ -119,8 +118,8 @@ vec2 sceneC(vec2 frag, vec2 r) {
   float d = 1000.0;
   vec4 O = vec4(0.0);
 
-  // Reduced iteration count from 22 -> 8 to fix Mobile Lag
-  for (int k = 0; k < 8; k++) {
+  // OPTIMIZATION: Loop reduced from 22 -> 10 to protect mobile GPU & stop freeze
+  for (int k = 0; k < 10; k++) {
     if (d <= 0.001) break;
     O = z * normalize(vec4(P, uZoom, 0.0)) - vec4(0.0, 4.0, 1.0, 0.0) / 4.5;
     d = 1.0 - sqrt(length(O * O));
@@ -153,8 +152,8 @@ void mainImage(out vec4 o, vec2 C) {
   vec2 rr = vec2(max(length(fw), 0.00001));
   float tail = 19.0 / max(uStreakLength, 0.05);
 
-  // Reduced loop steps for high GPU performance
-  for (int m = 0; m < 8; m++) {
+  // OPTIMIZATION: Loop steps 8 -> 4 max for high performance
+  for (int m = 0; m < 4; m++) {
     if (m >= uStreakCount) break;
     float jf = float(m) + 1.0;
     float ic = fract(sin(dot(vec2(jf, floor(C.x / Y.x + 0.5)), vec2(7.0, 11.0)) * 73.0));
@@ -169,9 +168,8 @@ void mainImage(out vec4 o, vec2 C) {
     C.x += Y.x / 8.0;
   }
 
-  // Safe color tone mapping (Replaced tanhv to prevent Yellowish mobile bug)
   vec3 colr = clamp(O * uGlow, 0.0, 1.0);
-  colr = pow(colr, vec3(0.8)); // Subtle gamma correction
+  colr = pow(colr, vec3(0.8));
   
   o = vec4(colr, uOpacity);
 }
@@ -211,7 +209,7 @@ const Lightfall: React.FC<LightfallProps> = ({
     const isMobile = typeof window !== 'undefined' && (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768);
 
     // Dynamic resolution scaling for mobile devices
-    const renderDpr = dpr ?? (isMobile ? 0.5 : Math.min(window.devicePixelRatio || 1, 1.5));
+    const renderDpr = dpr ?? (isMobile ? 0.5 : Math.min(window.devicePixelRatio || 1, 1.25));
 
     let renderer: Renderer;
     try {
@@ -250,7 +248,7 @@ const Lightfall: React.FC<LightfallProps> = ({
       uColorCount: { value: count },
       uBgColor: { value: hexToRGB(backgroundColor) },
       uSpeed: { value: speed },
-      uStreakCount: { value: Math.min(8, Math.round(streakCount)) },
+      uStreakCount: { value: Math.min(4, Math.round(streakCount)) },
       uStreakWidth: { value: streakWidth },
       uStreakLength: { value: streakLength },
       uGlow: { value: glow },
@@ -284,9 +282,10 @@ const Lightfall: React.FC<LightfallProps> = ({
 
     const loop = (t: number) => {
       rafRef.current = requestAnimationFrame(loop);
-      uniforms.iTime.value = t * 0.001;
-
+      
+      // OPTIMIZATION: Only render when not paused
       if (!paused) {
+        uniforms.iTime.value = t * 0.001;
         try {
           renderer.render({ scene: mesh });
         } catch (e) {
@@ -303,22 +302,7 @@ const Lightfall: React.FC<LightfallProps> = ({
         container.removeChild(canvas);
       }
     };
-  }, [
-    dpr,
-    paused,
-    colors,
-    backgroundColor,
-    speed,
-    streakCount,
-    streakWidth,
-    streakLength,
-    glow,
-    density,
-    twinkle,
-    zoom,
-    backgroundGlow,
-    opacity
-  ]);
+  }, [paused]); // Clean dependency to avoid continuous WebGL context restarts
 
   return (
     <div
