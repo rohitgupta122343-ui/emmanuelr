@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -9,8 +9,14 @@ const PHOTOSHOP_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/200
 const LIGHTROOM_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="%23001E36" d="M0 0h512v512H0z"/><path fill="%2331A8FF" d="M120 120h60v220h120v48H120V120zm140 120h50c25 0 40 10 40 30 0 15-10 25-25 28l35 62h-60l-30-55h-10v55h-50V240zm50 40c5 0 10-3 10-8s-5-8-10-8h-10v16h10z"/></svg>';
 const INDESIGN_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="%232B001B" d="M0 0h512v512H0z"/><path fill="%23FF3366" d="M120 120h60v272h-60V120zm120 80h60v32c20-25 45-37 75-37 50 0 85 35 85 95v102h-60V295c0-35-20-50-45-50-30 0-55 25-55 60v87h-60V200z"/></svg>';
 
+interface TechItem {
+  name: string;
+  category: string;
+  icon: string;
+}
+
 // Carefully Selected Professional Design Suite
-const techStack = [
+const techStack: TechItem[] = [
   { name: 'Photoshop', category: 'Raster & Editing', icon: PHOTOSHOP_SVG },
   { name: 'Illustrator', category: 'Vector & Branding', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/illustrator/illustrator-line.svg' },
   { name: 'Figma', category: 'UI/UX & Systems', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/figma/figma-original.svg' },
@@ -30,6 +36,9 @@ const TechStackSection = () => {
   const circleRef = useRef<HTMLDivElement>(null);
   const orbitTweenRef = useRef<gsap.core.Tween | null>(null);
   const counterTweensRef = useRef<gsap.core.Tween[]>([]);
+  
+  // Track hovered/active tool
+  const [activeTech, setActiveTech] = useState<TechItem | null>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -88,6 +97,7 @@ const TechStackSection = () => {
   const handleMouseLeave = () => {
     if (orbitTweenRef.current) orbitTweenRef.current.play();
     counterTweensRef.current.forEach((t) => t.play());
+    setActiveTech(null); // Clear center text when unhovered
   };
 
   return (
@@ -113,7 +123,7 @@ const TechStackSection = () => {
           </p>
         </div>
 
-        {/* Interactive Orbital Canvas - Responsive Outer Wrapper */}
+        {/* Interactive Orbital Canvas Container */}
         <div className="relative mx-auto mt-10 flex aspect-square w-[85vw] max-w-[340px] items-center justify-center sm:mt-14 sm:w-full sm:max-w-[460px] md:max-w-[520px] lg:max-w-[580px]">
           <div
             ref={circleRef}
@@ -126,26 +136,40 @@ const TechStackSection = () => {
             <div className="absolute inset-[18%] rounded-full border border-white/5" />
             <div className="absolute inset-[36%] rounded-full border border-[#002E97]/25" />
 
+            {/* Central Glow & Dynamic Center Text Display */}
+            <div className="pointer-events-none absolute inset-[36%] z-30 flex flex-col items-center justify-center rounded-full border border-[#002E97]/30 bg-black/40 text-center backdrop-blur-md transition-all duration-300">
+              {activeTech ? (
+                <div className="flex flex-col items-center px-2 animate-in fade-in duration-200">
+                  <span className="font-body text-xs font-semibold text-white tracking-wide sm:text-sm md:text-base">
+                    {activeTech.name}
+                  </span>
+                  <span className="mt-0.5 font-body text-[9px] text-[#31A8FF] sm:text-[11px]">
+                    {activeTech.category}
+                  </span>
+                </div>
+              ) : (
+                <span className="font-body text-[9px] tracking-wider text-muted-foreground/60 uppercase sm:text-[10px]">
+                  Tool Expertise
+                </span>
+              )}
+            </div>
+
             {/* Software Icons Positioned in Radial Grid */}
             {techStack.map((tech, i) => {
               const isOuter = i % 2 === 0;
-              const radius = isOuter ? 44 : 27; // Slightly tighter radius for small screens
+              const radius = isOuter ? 44 : 27;
               const angleOffset = isOuter ? 0 : Math.PI / techStack.length;
               const angle = (i / techStack.length) * Math.PI * 2 - Math.PI / 2 + angleOffset;
               const x = 50 + Math.cos(angle) * radius;
               const y = 50 + Math.sin(angle) * radius;
-
-              // Position tooltip dynamically to avoid clipping near screen borders
-              const isBottomHalf = y > 60;
-              const tooltipPosClass = isBottomHalf
-                ? 'bottom-full mb-2.5 top-auto translate-y-[-4px] group-hover:translate-y-0'
-                : 'top-full mt-2.5 translate-y-1 group-hover:translate-y-0';
 
               return (
                 <div
                   key={`${tech.name}-${i}`}
                   className="tech-item group absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-20"
                   style={{ left: `${x}%`, top: `${y}%` }}
+                  onMouseEnter={() => setActiveTech(tech)}
+                  onTouchStart={() => setActiveTech(tech)}
                 >
                   {/* Icon Container with Glassmorphism */}
                   <div className="icon-badge relative flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/60 backdrop-blur-md transition-all duration-300 group-hover:scale-125 group-hover:border-[#002E97] group-hover:bg-black/95 group-hover:shadow-[0_0_30px_rgba(0,46,151,0.75)] sm:h-12 sm:w-12 md:h-16 md:w-16">
@@ -158,25 +182,17 @@ const TechStackSection = () => {
                       }}
                     />
                   </div>
-
-                  {/* Professional Tooltip */}
-                  <div className={`pointer-events-none absolute left-1/2 z-40 -translate-x-1/2 whitespace-nowrap opacity-0 transition-all duration-300 group-hover:opacity-100 ${tooltipPosClass}`}>
-                    <div className="flex flex-col items-center rounded-lg border border-[#002E97]/50 bg-black/95 px-2.5 py-1 shadow-2xl backdrop-blur-xl sm:px-3.5 sm:py-1.5">
-                      <span className="font-body text-[10px] font-semibold tracking-wide text-white sm:text-xs">{tech.name}</span>
-                      <span className="font-body text-[9px] text-muted-foreground/70 sm:text-[10px]">{tech.category}</span>
-                    </div>
-                  </div>
                 </div>
               );
             })}
 
-            {/* Central Blue Ambient Radial Glow */}
+            {/* Central Blue Ambient Radial Glow Background */}
             <div
               className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
               style={{
-                width: '40%',
-                height: '40%',
-                background: 'radial-gradient(circle, rgba(0, 46, 151, 0.35) 0%, transparent 70%)',
+                width: '45%',
+                height: '45%',
+                background: 'radial-gradient(circle, rgba(0, 46, 151, 0.45) 0%, transparent 70%)',
                 filter: 'blur(30px)',
               }}
             />
