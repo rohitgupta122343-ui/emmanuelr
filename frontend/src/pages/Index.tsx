@@ -22,7 +22,7 @@ const Index = () => {
 
  useEffect(() => {
   audioRef.current = new Audio(
-    "https://ik.imagekit.io/0wmauyftj/music/music.mp3?updatedAt=1782227048956"
+    "https://ik.imagekit.io/0wmauyftj/music/em.mpeg"
   );
 
   audioRef.current.loop = true;
