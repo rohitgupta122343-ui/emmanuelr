@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect,useRef  } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Preloader from '@/components/Preloader';
@@ -18,10 +18,49 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const scrollProgress = useScrollProgress();
 
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+ useEffect(() => {
+  audioRef.current = new Audio(
+    "https://ik.imagekit.io/0wmauyftj/music/music.mp3?updatedAt=1782227048956"
+  );
+
+  audioRef.current.loop = true;
+  audioRef.current.volume = 0.2;
+
+  return () => {
+    audioRef.current?.pause();
+  };
+}, []);
+
+useEffect(() => {
+  const startMusic = () => {
+    audioRef.current?.play().catch(console.error);
+
+    window.removeEventListener("pointerdown", startMusic);
+    window.removeEventListener("keydown", startMusic);
+    window.removeEventListener("touchstart", startMusic);
+  };
+
+  window.addEventListener("pointerdown", startMusic);
+  window.addEventListener("keydown", startMusic);
+  window.addEventListener("touchstart", startMusic);
+
+  return () => {
+    window.removeEventListener("pointerdown", startMusic);
+    window.removeEventListener("keydown", startMusic);
+    window.removeEventListener("touchstart", startMusic);
+  };
+}, []);
+
   const handleLoaderComplete = useCallback(() => {
     setIsLoading(false);
     // Smooth scroll to top after loader
     window.scrollTo(0, 0);
+
+    audioRef.current?.play().catch((err) => {
+    console.log("Autoplay blocked:", err);
+  });
   }, []);
 
   useEffect(() => {
